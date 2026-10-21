@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -34,7 +35,7 @@ export default async function Dashboard() {
       <h1>Masjid yang dapat Anda akses</h1>
       {!configured ? <p role="status">Layanan data pengurus belum dikonfigurasi. Hubungi administrator sistem.</p> :
        mosques.length===0 ? <p role="status">Akun terverifikasi, tetapi belum memiliki keanggotaan masjid aktif. Hubungi administrator.</p> :
-       <ul className="mosque-list">{mosques.map(m=><li key={m.id}><strong>{m.name}</strong><span>Hak akses modul belum diaktifkan.</span></li>)}</ul>}
+       <ul className="mosque-list">{mosques.map(m=><li key={m.id}><strong>{m.name}</strong><Link href={'/dashboard/masjid/'+m.id}>Buka profil masjid →</Link></li>)}</ul>}
       <p className="helper">Data keuangan, jamaah, dan pengelolaan masjid belum diaktifkan pada tahap ini.</p>
     </div>
   </main>;
