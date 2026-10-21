@@ -20,26 +20,36 @@ if (!publicUrl) {
 }
 if (!publishable) {
   faults.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY belum dikonfigurasi.');
+} else if (/^(?:[\"']|sb_publishable_\s|Publishable key|somevalue)/i.test(publishable)) {
+  faults.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY mengandung tanda kutip/teks contoh atau karakter awal tidak sesuai. Salin hanya nilai kunci mentah dari Supabase → Project Settings → API Keys.');
 } else if (!publishable.startsWith('sb_publishable_') && !publishable.startsWith('eyJ')) {
-  faults.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY tidak terlihat seperti publishable key/anon key Supabase.');
+  faults.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY harus diawali sb_publishable_ (atau JWT anon lama eyJ). Jangan masukkan label atau URL.');
 }
 if (!database) {
   faults.push('DATABASE_URL belum dikonfigurasi.');
 } else {
   try {
+    if (database.startsWith('"') || database.startsWith("'")) {
+      faults.push('DATABASE_URL mengandung tanda kutip pembungkus. Hapus tanda kutip; tempel URL mentah saja.');
+    }
+    if (/\[YOUR-PASSWORD\]|\bConnection string PostgreSQL\b|^somevalue$/i.test(database)) {
+      faults.push('DATABASE_URL masih berisi placeholder/teks contoh; harus menggunakan password database sebenarnya.');
+    }
+    if (/[\r\n]/.test(database)) faults.push('DATABASE_URL harus satu baris tanpa enter.');
     const url = new URL(database);
     if (!['postgresql:', 'postgres:'].includes(url.protocol) || !url.hostname || !url.username || !url.password || !url.pathname || url.password.includes('YOUR-PASSWORD')) {
       faults.push('DATABASE_URL harus berupa connection string PostgreSQL lengkap dengan username, password, host, dan database.');
     }
     if (!url.hostname.endsWith('.supabase.com')) faults.push('DATABASE_URL harus menggunakan host PostgreSQL Supabase.');
+    if (!url.password) faults.push('DATABASE_URL tidak memiliki password setelah tanda titik dua (:).');
   } catch {
-    faults.push('DATABASE_URL tidak memiliki format URL PostgreSQL yang valid.');
+    faults.push('DATABASE_URL bukan URL PostgreSQL valid. Periksa awalan postgresql://, karakter khusus password (%21 untuk !, %40 untuk @, %23 untuk #), dan pastikan tidak ada spasi, tanda kutip atau baris baru.');
   }
 }
 if (faults.length) {
   console.error('\n[MASAJIDALLOH PRO] Pemeriksaan konfigurasi deployment GAGAL.');
   faults.forEach((fault, i) => console.error(`  ${i + 1}. ${fault}`));
-  console.error('Nilai kredensial disembunyikan. Perbaiki variabel di Netlify → Environment variables.\n');
+  console.error('Nilai kredensial disembunyikan. Jika menjalankan GitHub Actions, perbarui nilai di GitHub → Settings → Secrets and variables → Actions → Repository secrets; Netlify Environment variables tidak mengganti GitHub Secrets.\n');
   process.exitCode = 1;
 } else {
   console.log('[MASAJIDALLOH PRO] Format variabel lingkungan lolos pemeriksaan awal (belum menguji koneksi database).');
