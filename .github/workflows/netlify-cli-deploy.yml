@@ -99,6 +99,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://vsbvyhghggvzoanozvvw.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_qYK3MOJFtJ1imHmetvv3Qg_8EqieMxT
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MDD_DEPLOY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MDD_DEPLOY_PUBLISHABLE_KEY: sb_publishable_qYK3MOJFtJ1imHmetvv3Qg_8EqieMxT
           CI: "true"
         # Do not use --dir .next --no-build: Next.js needs Netlify's runtime-generated functions.
         # Netlify sensitive environment variables are not necessarily available outside Netlify's build environment.
