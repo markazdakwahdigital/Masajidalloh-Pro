@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# A single push to this workflow file also starts deployment; other code pushes do not.
+# A single workflow revision starts the patched Next.js deployment; unrelated pushes do not.
 on:
   workflow_dispatch:
   push:
