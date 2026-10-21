@@ -31,6 +31,10 @@ jobs:
             echo "::error::NETLIFY_AUTH_TOKEN belum disimpan dalam GitHub Actions repository secrets."
             exit 1
           fi
+      - name: Resolve Netlify site UUID securely
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: node scripts/resolve-netlify-site.mjs
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Generate Prisma client
@@ -50,7 +54,6 @@ jobs:
       - name: Deploy Next.js with Netlify CLI
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: masajidallohpro
           CI: "true"
         # Do not use --dir .next --no-build: Next.js needs Netlify's runtime-generated functions.
         # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
