@@ -70,6 +70,29 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
+      - name: Synchronize verified production environment to Netlify securely
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: https://vsbvyhghggvzoanozvvw.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_qYK3MOJFtJ1imHmetvv3Qg_8EqieMxT
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never reveal secret or CLI output containing variables in Actions logs.
+          if ! npx --yes netlify-cli@latest env:set DATABASE_URL "$DATABASE_URL" --context production --secret --force --site "$NETLIFY_SITE_ID" > /dev/null 2>&1; then
+            echo "::error::Netlify did not accept DATABASE_URL; no value has been printed."
+            exit 1
+          fi
+          if ! npx --yes netlify-cli@latest env:set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" --context production --force --site "$NETLIFY_SITE_ID" > /dev/null 2>&1; then
+            echo "::error::Netlify did not accept Supabase publishable key."
+            exit 1
+          fi
+          if ! npx --yes netlify-cli@latest env:set NEXT_PUBLIC_SUPABASE_URL "$NEXT_PUBLIC_SUPABASE_URL" --context production --force --site "$NETLIFY_SITE_ID" > /dev/null 2>&1; then
+            echo "::error::Netlify did not accept Supabase URL."
+            exit 1
+          fi
+          echo "Production variables synchronized to existing Netlify site without exposing values."
       - name: Deploy Next.js with Netlify CLI
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
