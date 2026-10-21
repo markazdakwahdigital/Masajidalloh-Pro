@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -29,7 +30,7 @@ export default async function Dashboard() {
     mosques = identity?.memberships.map(x=>x.mosque) ?? [];
   } catch { configured = false; }
   return <main className="dashboard-shell">
-    <header className="dashboard-bar"><strong>MASAJIDALLOH <span>PRO</span></strong><form action={logout}><button type="submit">Keluar</button></form></header>
+    <header className="dashboard-bar"><div className="dashboard-brand"><Image className="official-logo" src="/brand/logo.webp" alt="Logo resmi MASAJIDALLOH PRO" width={46} height={46} unoptimized /><strong>MASAJIDALLOH <span>PRO</span></strong></div><form action={logout}><button type="submit">Keluar</button></form></header>
     <div className="dashboard-content">
       <p className="eyebrow">DASHBOARD TERLINDUNGI</p>
       <h1>Masjid yang dapat Anda akses</h1>

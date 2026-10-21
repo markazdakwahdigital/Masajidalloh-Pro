@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireCurrentActor } from '@/lib/server/current-actor';
@@ -24,7 +25,7 @@ export default async function MosquePage({params}:{params:Promise<{mosqueId:stri
     select:{id:true,title:true,description:true,startsAt:true,status:true}
   }):[];
   return <main className="dashboard-shell">
-    <header className="dashboard-bar"><strong>MASAJIDALLOH <span>PRO</span></strong><Link href="/dashboard">← Daftar Masjid</Link></header>
+    <header className="dashboard-bar"><div className="dashboard-brand"><Image className="official-logo" src="/brand/logo.webp" alt="Logo resmi MASAJIDALLOH PRO" width={46} height={46} unoptimized /><strong>MASAJIDALLOH <span>PRO</span></strong></div><Link href="/dashboard">← Daftar Masjid</Link></header>
     <div className="dashboard-content">
       <p className="eyebrow">MANAJEMEN MASJID</p><h1>{mosque.name}</h1>
       <p>Professional Mosque Management Platform</p>
