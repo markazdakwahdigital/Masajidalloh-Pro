@@ -1,13 +1,12 @@
-# Netlify automatically provisions the Next.js runtime for supported Next.js releases.
-# Do not add a SPA /* /index.html redirect: it would break authenticated server routes.
+# MASAJIDALLOH PRO — Netlify Free staging.
+# Use Netlify's native Next.js runtime. Do not add SPA redirects or a static export.
 [build]
-  command = "npm run db:generate && npm run build"
+  command = "node scripts/check-deploy-env.mjs && npm run db:generate && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
 
-# HTTPS and standard security headers for the public-facing app.
 [[headers]]
   for = "/*"
   [headers.values]
