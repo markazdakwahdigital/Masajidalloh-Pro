@@ -28,7 +28,7 @@ export async function createProgram(mosqueId:string,_previous:FormResult|null,fo
     return {ok:false,message:'Waktu kegiatan tidak valid.'};
   // Atomically save activity and audit trail with the verified tenant.
   await prisma.$transaction(async tx=>{
-    const member=await tx.mosqueMembership.findUnique({where:{mosqueId_userId:{mosqueId:context.mosqueId,userId:actor.id}},select:{status:true,mosque:{select:{status:true}},roles:{select:{role:{select:{permissions:{select:{permission:{select:{key:true}}}}}}}}}}});
+    const member=await tx.mosqueMembership.findUnique({where:{mosqueId_userId:{mosqueId:context.mosqueId,userId:actor.id}},include:{mosque:true,roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}}}});
     if(member?.status!=='ACTIVE'||member.mosque.status!=='ACTIVE'||!member.roles.some(r=>r.role.permissions.some(p=>p.permission.key==='program.manage'))) throw new AuthorizationError();
     const program=await tx.mosqueProgram.create({data:{
       mosqueId:context.mosqueId,title:title.trim(),description:description.trim()||null,
@@ -46,7 +46,7 @@ export async function changeProgramStatus(mosqueId:string,programId:string,targe
   const context=await verifyCurrentPermission(mosqueId,actor.id,'program.manage');
   if(!/^[0-9a-f-]{36}$/i.test(programId)||!['PUBLISHED','CANCELED'].includes(target)) throw new AuthorizationError();
   await prisma.$transaction(async tx=>{
-    const membership=await tx.mosqueMembership.findUnique({where:{mosqueId_userId:{mosqueId:context.mosqueId,userId:actor.id}},select:{status:true,mosque:{select:{status:true}},roles:{select:{role:{select:{permissions:{select:{permission:{select:{key:true}}}}}}}}}}});
+    const membership=await tx.mosqueMembership.findUnique({where:{mosqueId_userId:{mosqueId:context.mosqueId,userId:actor.id}},include:{mosque:true,roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}}}});
     if(membership?.status!=='ACTIVE'||membership.mosque.status!=='ACTIVE'||!membership.roles.some(r=>r.role.permissions.some(p=>p.permission.key==='program.manage'))) throw new AuthorizationError();
     const allowedPrevious=target==='PUBLISHED'?'DRAFT':'PUBLISHED';
     const changed=await tx.mosqueProgram.updateMany({
