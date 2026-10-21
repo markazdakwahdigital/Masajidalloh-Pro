@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+enum MosqueStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+model Mosque {
+  id          String @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String @unique
+  status      MosqueStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memberships MosqueMembership[]
+  auditLogs   AuditLog[]
+  programs    MosqueProgram[]
+}
+model User {
+  id          String @id @default(uuid()) @db.Uuid
+  authUserId  String? @unique @db.Uuid
+  email       String @unique
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memberships MosqueMembership[]
+  auditLogs   AuditLog[]
+  authoredPrograms MosqueProgram[]
+}
+model MosqueMembership {
+  id        String @id @default(uuid()) @db.Uuid
+  mosqueId  String @db.Uuid
+  userId    String @db.Uuid
+  status    MembershipStatus @default(INVITED)
+  mosque    Mosque @relation(fields: [mosqueId], references: [id], onDelete: Restrict)
+  user      User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  roles     MembershipRole[]
+  @@unique([mosqueId, userId])
+  @@index([userId, status])
+}
+model Role {
+  id          String @id @default(uuid()) @db.Uuid
+  key         String @unique
+  description String?
+  memberships MembershipRole[]
+  permissions RolePermission[]
+}
+model Permission {
+  id    String @id @default(uuid()) @db.Uuid
+  key   String @unique
+  roles RolePermission[]
+}
+model MembershipRole {
+  membershipId String @db.Uuid
+  roleId       String @db.Uuid
+  membership   MosqueMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  role         Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  @@id([membershipId, roleId])
+}
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+  role         Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([roleId, permissionId])
+}
+model AuditLog {
+  id        String @id @default(uuid()) @db.Uuid
+  mosqueId  String? @db.Uuid
+  actorId   String? @db.Uuid
+  action    String
+  resource  String
+  createdAt DateTime @default(now())
+  mosque    Mosque? @relation(fields: [mosqueId], references: [id], onDelete: Restrict)
+  actor     User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([mosqueId, createdAt])
+}
+
+model MosqueProgram {
+  id          String @id @default(uuid()) @db.Uuid
+  mosqueId    String @db.Uuid
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  status      String @default("DRAFT")
+  createdById String @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  mosque      Mosque @relation(fields: [mosqueId], references: [id], onDelete: Restrict)
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  @@index([mosqueId, startsAt])
+}

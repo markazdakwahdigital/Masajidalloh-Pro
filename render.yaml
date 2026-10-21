@@ -1,0 +1,24 @@
+# MASAJIDALLOH PRO — pilot staging only. Explicitly FREE compute; no paid databases.
+services:
+  - type: web
+    name: masajidalloh-pro-staging
+    runtime: node
+    plan: free
+    region: singapore
+    repo: https://github.com/markazdakwahdigital/Masajidalloh-Pro
+    branch: feature/phase1-saas-foundation
+    autoDeployTrigger: checksPass
+    buildCommand: npm install --no-audit --no-fund && node scripts/check-deploy-env.mjs && npm run db:generate && npm run build
+    startCommand: npm run start -- --hostname 0.0.0.0
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: https://vsbvyhghggvzoanozvvw.supabase.co
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
