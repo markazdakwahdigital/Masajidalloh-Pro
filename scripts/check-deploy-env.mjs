@@ -29,6 +29,12 @@ if (!database) {
   faults.push('DATABASE_URL belum dikonfigurasi.');
 } else {
   try {
+    // Report only non-sensitive shape diagnostics, never a username, host, password, or full URL.
+    if (!/^postgres(?:ql)?:\/\//i.test(database)) {
+      faults.push('DATABASE_URL tidak diawali postgresql://. Pastikan yang ditempel adalah seluruh Connection string (URI), bukan password saja.');
+    }
+    if (database.includes('[YOUR-PASSWORD]')) faults.push('DATABASE_URL masih memakai placeholder [YOUR-PASSWORD].');
+    if (/^https?:\/\//i.test(database)) faults.push('DATABASE_URL adalah HTTP URL, bukan PostgreSQL URI.');
     if (database.startsWith('"') || database.startsWith("'")) {
       faults.push('DATABASE_URL mengandung tanda kutip pembungkus. Hapus tanda kutip; tempel URL mentah saja.');
     }
@@ -43,7 +49,7 @@ if (!database) {
     if (!url.hostname.endsWith('.supabase.com')) faults.push('DATABASE_URL harus menggunakan host PostgreSQL Supabase.');
     if (!url.password) faults.push('DATABASE_URL tidak memiliki password setelah tanda titik dua (:).');
   } catch {
-    faults.push('DATABASE_URL bukan URL PostgreSQL valid. Periksa awalan postgresql://, karakter khusus password (%21 untuk !, %40 untuk @, %23 untuk #), dan pastikan tidak ada spasi, tanda kutip atau baris baru.');
+    faults.push('DATABASE_URL bukan URL PostgreSQL valid. Salin URI dari Supabase → Connect → Transaction pooler, hapus [YOUR-PASSWORD] beserta tanda [], masukkan password yang telah di-percent-encode, lalu simpan sebagai satu baris.');
   }
 }
 if (faults.length) {
