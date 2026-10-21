@@ -22,7 +22,7 @@ export default async function Dashboard() {
     const identity = await prisma.user.findUnique({
       where: { authUserId: authId },
       select: { memberships: {
-        where: { status: 'ACTIVE', mosque: {status:'ACTIVE'} },
+        where: { status: 'ACTIVE', mosque: {status:'ACTIVE'}, roles: { some: {role: {permissions: {some: {permission: {key: 'mosque.read'}}}}} } },
         select: { mosque: { select:{ id:true, name:true } } },
       } },
     });
