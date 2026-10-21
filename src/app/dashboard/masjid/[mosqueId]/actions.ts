@@ -14,9 +14,16 @@ export async function updateMosqueProfile(mosqueId: string, formData: FormData) 
     return {ok:false,message:'Nama masjid harus terdiri dari 3–120 karakter.'};
   }
   const cleaned = name.trim();
-  // Atomically write profile and immutable evidence of the change.
   await prisma.$transaction(async tx => {
-    // Defense in depth: only update the mosque associated with the approved context.
+    // Recheck membership and role immediately before mutation.
+    const member = await tx.mosqueMembership.findUnique({
+      where:{mosqueId_userId:{mosqueId:context.mosqueId,userId:actor.id}},
+      include:{mosque:true,roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}}}
+    });
+    if (!member || member.status!=='ACTIVE' || member.mosque.status!=='ACTIVE' ||
+        !member.roles.some(r=>r.role.permissions.some(p=>p.permission.key==='mosque.manage'))) {
+      throw new AuthorizationError();
+    }
     const updated = await tx.mosque.updateMany({
       where:{id:context.mosqueId,status:'ACTIVE'}, data:{name:cleaned},
     });
