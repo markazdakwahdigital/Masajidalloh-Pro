@@ -1,0 +1,57 @@
+name: Deploy Netlify via GitHub runner
+
+# Deliberate manual execution: avoids unintended deployments and Free plan build usage.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: masajidalloh-staging-netlify
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase1-saas-foundation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Netlify token availability (without printing it)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "::error::NETLIFY_AUTH_TOKEN belum disimpan dalam GitHub Actions repository secrets."
+            exit 1
+          fi
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - name: Validate Prisma schema
+        run: npx prisma validate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - name: Run unit tests
+        run: node --experimental-strip-types --test tests/*.test.mjs
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Deploy Next.js with Netlify CLI
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: masajidallohpro
+          CI: "true"
+        # Do not use --dir .next --no-build: Next.js needs Netlify's runtime-generated functions.
+        # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
+        run: npx --yes netlify-cli@latest deploy --prod --site "$NETLIFY_SITE_ID" --context production
