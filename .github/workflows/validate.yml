@@ -22,6 +22,8 @@ jobs:
         run: npx prisma validate
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - name: Authorization unit tests
+        run: node --experimental-strip-types --test tests/*.test.mjs
       - name: Type check
         run: npm run typecheck
       - name: Lint
