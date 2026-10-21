@@ -1,8 +1,12 @@
 name: Deploy Netlify via GitHub runner
 
-# Deliberate manual execution: avoids unintended deployments and Free plan build usage.
+# A single push to this workflow file also starts deployment; other code pushes do not.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/netlify-cli-deploy.yml'
 
 permissions:
   contents: read
@@ -44,6 +48,12 @@ jobs:
             echo "::error::GitHub Actions memerlukan repository secret DATABASE_URL. Publishable key adalah nilai publik yang disinkronkan dari Supabase."
             exit 1
           fi
+      - name: Validate actual production secret formats before installing dependencies
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://vsbvyhghggvzoanozvvw.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_qYK3MOJFtJ1imHmetvv3Qg_8EqieMxT
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/check-deploy-env.mjs
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Generate Prisma client
