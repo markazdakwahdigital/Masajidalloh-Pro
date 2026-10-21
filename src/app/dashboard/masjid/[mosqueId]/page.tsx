@@ -6,6 +6,7 @@ import { resolveTenantContext } from '@/lib/server/authorization';
 import { AuthorizationError } from '@/lib/tenant';
 import ProfileForm from './profile-form';
 import ProgramForm from './program-form';
+import { changeProgramStatus } from './program-actions';
 
 export const dynamic='force-dynamic';
 export default async function MosquePage({params}:{params:Promise<{mosqueId:string}>}) {
@@ -39,7 +40,7 @@ export default async function MosquePage({params}:{params:Promise<{mosqueId:stri
         <ul className="mosque-list">{programs.map(p=><li key={p.id}>
           <div><strong>{p.title}</strong><p>{p.description??'Tanpa deskripsi'}</p>
           <small>{new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(p.startsAt)} WIB</small></div>
-          <span>{p.status==='DRAFT'?'Draft (belum dipublikasi)':p.status}</span>
+          <div><span>{p.status==='DRAFT'?'Draft':p.status==='PUBLISHED'?'Terbit':'Dibatalkan'}</span>{context.permissions.has('program.manage') && p.status!=='CANCELED' && <form action={changeProgramStatus.bind(null,mosqueId,p.id,p.status==='DRAFT'?'PUBLISHED':'CANCELED')}><button className="subtle-action" type="submit">{p.status==='DRAFT'?'Publikasikan':'Batalkan'}</button></form>}</div>
         </li>)}</ul>}
         {context.permissions.has('program.manage')&&<><h3>Tambah kegiatan</h3><ProgramForm mosqueId={mosqueId}/></>}
       </section>}
