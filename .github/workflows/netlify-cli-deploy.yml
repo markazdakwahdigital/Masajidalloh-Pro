@@ -69,5 +69,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CI: "true"
         # Do not use --dir .next --no-build: Next.js needs Netlify's runtime-generated functions.
-        # Netlify sensitive environment variables are not necessarily available outside Netlify's build environment.\n        # GitHub Secrets supply them only to this trusted manual deployment job.\n        # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
+        # Netlify sensitive environment variables are not necessarily available outside Netlify's build environment.
+        # GitHub Secrets supply them only to this trusted manual deployment job.
+        # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
         run: npx --yes netlify-cli@latest deploy --prod --site "$NETLIFY_SITE_ID" --context production
