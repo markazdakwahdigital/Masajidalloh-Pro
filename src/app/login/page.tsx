@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { login } from './actions';
 export const dynamic = 'force-dynamic';
 export default async function Login({searchParams}:{searchParams:Promise<{error?:string}>}) {
@@ -19,7 +20,7 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
         <button type="submit">Masuk dengan aman</button>
       </form>
       <p className="helper">Pendaftaran pengurus dilakukan melalui administrator masjid. Pendaftaran mandiri belum diaktifkan.</p>
-      <a href="/">Kembali ke halaman utama</a>
+      <Link href="/">Kembali ke halaman utama</Link>
     </section>
   </main>;
 }
