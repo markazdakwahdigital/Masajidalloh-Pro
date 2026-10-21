@@ -35,6 +35,16 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: node scripts/resolve-netlify-site.mjs
+      - name: Check Supabase GitHub Actions secrets without revealing values
+        env:
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        shell: bash
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ] || [ -z "$DATABASE_URL" ]; then
+            echo "::error::GitHub Actions memerlukan repository secrets NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY dan DATABASE_URL untuk membangun Next.js di GitHub runner."
+            exit 1
+          fi
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Generate Prisma client
@@ -54,7 +64,10 @@ jobs:
       - name: Deploy Next.js with Netlify CLI
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: https://vsbvyhghggvzoanozvvw.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CI: "true"
         # Do not use --dir .next --no-build: Next.js needs Netlify's runtime-generated functions.
-        # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
+        # Netlify sensitive environment variables are not necessarily available outside Netlify's build environment.\n        # GitHub Secrets supply them only to this trusted manual deployment job.\n        # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
         run: npx --yes netlify-cli@latest deploy --prod --site "$NETLIFY_SITE_ID" --context production
