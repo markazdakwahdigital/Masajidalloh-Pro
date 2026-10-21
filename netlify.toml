@@ -1,7 +1,7 @@
 # MASAJIDALLOH PRO — Netlify Free staging.
 # Use Netlify's native Next.js runtime. Do not add SPA redirects or a static export.
 [build]
-  command = "node scripts/check-deploy-env.mjs && npm run db:generate && npm run build"
+  command = "node scripts/netlify-build.mjs"
   publish = ".next"
 
 [build.environment]
