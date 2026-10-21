@@ -24,6 +24,7 @@ model Mosque {
   updatedAt   DateTime @updatedAt
   memberships MosqueMembership[]
   auditLogs   AuditLog[]
+  programs    MosqueProgram[]
 }
 model User {
   id          String @id @default(uuid()) @db.Uuid
@@ -34,6 +35,7 @@ model User {
   updatedAt   DateTime @updatedAt
   memberships MosqueMembership[]
   auditLogs   AuditLog[]
+  authoredPrograms MosqueProgram[]
 }
 model MosqueMembership {
   id        String @id @default(uuid()) @db.Uuid
@@ -82,4 +84,20 @@ model AuditLog {
   mosque    Mosque? @relation(fields: [mosqueId], references: [id], onDelete: Restrict)
   actor     User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
   @@index([mosqueId, createdAt])
+}
+
+model MosqueProgram {
+  id          String @id @default(uuid()) @db.Uuid
+  mosqueId    String @db.Uuid
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  status      String @default("DRAFT")
+  createdById String @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  mosque      Mosque @relation(fields: [mosqueId], references: [id], onDelete: Restrict)
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  @@index([mosqueId, startsAt])
 }
