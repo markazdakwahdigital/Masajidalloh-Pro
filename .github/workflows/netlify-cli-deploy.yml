@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# A single workflow revision starts the patched Next.js deployment; unrelated pushes do not.
+# PWA and official brand logo release: trigger one controlled deployment from the existing feature branch.
 on:
   workflow_dispatch:
   push:
