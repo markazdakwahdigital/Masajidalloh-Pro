@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# Manifest MIME-type fix release: publish after public visitor access was enabled.
+# Publish premium royal blue and gold app interface; real data and tenant isolation unchanged.
 on:
   workflow_dispatch:
   push:
