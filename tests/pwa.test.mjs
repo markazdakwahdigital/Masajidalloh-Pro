@@ -16,3 +16,12 @@ test('service worker provides offline fallback without caching authenticated res
   assert.doesNotMatch(s, /cache\.put\(/);
   assert.doesNotMatch(s, /caches\.open\([^)]*\)\.then\([^)]*cache\.add\(event\.request/);
 });
+
+test('installation guidance stays progressive and avoids caching private data', () => {
+  const ui = read('src/app/install-app.tsx').toString();
+  assert.match(ui, /beforeinstallprompt/);
+  assert.match(ui, /appinstalled/);
+  assert.match(ui, /Add to Home Screen/);
+  const sw = read('public/sw.js').toString();
+  assert.doesNotMatch(sw, /cache\.put\(/);
+});
