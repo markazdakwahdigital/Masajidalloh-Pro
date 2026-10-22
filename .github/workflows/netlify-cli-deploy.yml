@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# Publish verified dashboard toolbar: crisp HQ logo, Kemenag prayer times, date/hijri and real DKM profile.
+# Tenant pilot onboarding release: pricing, registration and safe pending approval workflow.
 on:
   workflow_dispatch:
   push:
