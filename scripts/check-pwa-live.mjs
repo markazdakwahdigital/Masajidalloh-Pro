@@ -18,9 +18,14 @@ for (const [path, mime] of expected) {
   for (let tries = 0; tries < 4; tries++) {
     try {
       response = await fetch(origin + path, { redirect: 'follow', signal: AbortSignal.timeout(14000), cache: 'no-store' });
-      if (response.ok) break;
+      if (response.ok || response.status === 401 || response.status === 403) break;
     } catch { /* deploy CDN may be propagating */ }
     if (tries < 3) await new Promise(resolve => setTimeout(resolve, 2500));
+  }
+  if (response?.status === 401 || response?.status === 403) {
+    console.error('[PWA] BLOCKED ' + path + ': HTTP ' + response.status + '. Check Netlify Project configuration > General > Visitor access > Project visibility. Production must be Public.');
+    process.exitCode = 1;
+    break;
   }
   if (!response?.ok) {
     console.error('[PWA] FAIL ' + path + ': HTTP ' + (response?.status ?? 'network error')); errors++; continue;
