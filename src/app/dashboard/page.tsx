@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
 import { logout } from '@/app/login/actions';
+import { DashboardFrame, Panel, StatCard } from '@/app/components/premium-dashboard';
 
 export const dynamic = 'force-dynamic';
 export default async function Dashboard() {
@@ -15,8 +15,6 @@ export default async function Dashboard() {
     if (!error && user?.id) authId = user.id;
   } catch { /* No authorized context. */ }
   if (!authId) redirect('/login');
-  // Trusted identity is the verified Supabase auth.users UUID, never email submitted by browser.
-  // Do not expose raw database errors or partially provisioned organizations.
   let mosques: Array<{id:string;name:string}> = [];
   let configured = true;
   try {
@@ -29,15 +27,16 @@ export default async function Dashboard() {
     });
     mosques = identity?.memberships.map(x=>x.mosque) ?? [];
   } catch { configured = false; }
-  return <main className="dashboard-shell">
-    <header className="dashboard-bar"><div className="dashboard-brand"><Image className="official-logo" src="/brand/logo.webp" alt="Logo resmi MASAJIDALLOH PRO" width={46} height={46} unoptimized /><strong>MASAJIDALLOH <span>PRO</span></strong></div><form action={logout}><button type="submit">Keluar</button></form></header>
-    <div className="dashboard-content">
-      <p className="eyebrow">DASHBOARD TERLINDUNGI</p>
-      <h1>Masjid yang dapat Anda akses</h1>
-      {!configured ? <p role="status">Layanan data pengurus belum dikonfigurasi. Hubungi administrator sistem.</p> :
-       mosques.length===0 ? <p role="status">Akun terverifikasi, tetapi belum memiliki keanggotaan masjid aktif. Hubungi administrator.</p> :
-       <ul className="mosque-list">{mosques.map(m=><li key={m.id}><strong>{m.name}</strong><Link href={'/dashboard/masjid/'+m.id}>Buka profil masjid →</Link></li>)}</ul>}
-      <p className="helper">Data keuangan, jamaah, dan pengelolaan masjid belum diaktifkan pada tahap ini.</p>
-    </div>
-  </main>;
+  return <DashboardFrame overview actions={<form action={logout}><button className="topbar-logout" type="submit">↪ Keluar</button></form>}>
+   <section className="premium-welcome"><div><span className="welcome-kicker">✧ DASHBOARD PENGURUS</span><h1>Assalamu’alaikum, Selamat Datang</h1><p>Pusat kendali operasional masjid. Seluruh informasi yang ditampilkan berasal dari hak akses akun Anda.</p></div><span className="welcome-emblem" aria-hidden="true">🕌</span></section>
+   <div className="premium-stats"><StatCard icon="🕌" title="MASJID TERDAFTAR" value={mosques.length} caption="Masjid yang dapat Anda akses" tone="blue"/><StatCard icon="🔐" title="AKSES PENGURUS" value="Aktif" caption="Sesi terautentikasi" tone="green"/><StatCard icon="📈" title="DATA KEUANGAN" value="—" caption="Modul belum diaktifkan" tone="gold"/></div>
+   <Panel icon="🕌" title="DAFTAR MASJID" sub="Pilih masjid untuk membuka profil, program, dan kegiatan operasional.">
+     {!configured ? <p role="status" className="info-note">Layanan data pengurus belum dapat diakses. Hubungi administrator sistem.</p> :
+       mosques.length===0 ? <p role="status" className="info-note">Akun terverifikasi, namun belum mempunyai keanggotaan masjid aktif. Hubungi administrator.</p> :
+       <div className="mosque-tiles">{mosques.map(m=><Link href={'/dashboard/masjid/'+m.id} className="mosque-tile" key={m.id}><span className="mosque-tile-icon">🕌</span><div><strong>{m.name}</strong><small>Profil dan program masjid</small></div><span className="tile-arrow">→</span></Link>)}</div>}
+   </Panel>
+   <Panel icon="📊" title="MODUL PENGEMBANGAN" sub="Rencana integrasi dalam satu platform; belum menampilkan data keuangan atau jamaah.">
+      <div className="pending-module-grid">{[['💰','Baitul Maal'],['🤲','ZISWAF'],['👥','Jamaah'],['🏗️','Aset'],['📚','Tarbiyah'],['🤝','Muamalah']].map(([icon,name])=><div key={name} className="pending-module"><span>{icon}</span><strong>{name}</strong><small>Segera hadir</small></div>)}</div>
+   </Panel>
+  </DashboardFrame>;
 }

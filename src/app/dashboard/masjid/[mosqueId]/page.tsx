@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireCurrentActor } from '@/lib/server/current-actor';
@@ -8,6 +7,7 @@ import { AuthorizationError } from '@/lib/tenant';
 import ProfileForm from './profile-form';
 import ProgramForm from './program-form';
 import { changeProgramStatus } from './program-actions';
+import { DashboardFrame, Panel, StatCard } from '@/app/components/premium-dashboard';
 
 export const dynamic='force-dynamic';
 export default async function MosquePage({params}:{params:Promise<{mosqueId:string}>}) {
@@ -24,32 +24,41 @@ export default async function MosquePage({params}:{params:Promise<{mosqueId:stri
     where:{mosqueId:context.mosqueId},orderBy:{startsAt:'asc'},take:50,
     select:{id:true,title:true,description:true,startsAt:true,status:true}
   }):[];
-  return <main className="dashboard-shell">
-    <header className="dashboard-bar"><div className="dashboard-brand"><Image className="official-logo" src="/brand/logo.webp" alt="Logo resmi MASAJIDALLOH PRO" width={46} height={46} unoptimized /><strong>MASAJIDALLOH <span>PRO</span></strong></div><Link href="/dashboard">← Daftar Masjid</Link></header>
-    <div className="dashboard-content">
-      <p className="eyebrow">MANAJEMEN MASJID</p><h1>{mosque.name}</h1>
-      <p>Professional Mosque Management Platform</p>
-      <section className="card"><h2>Profil Masjid</h2><p><strong>Slug:</strong> {mosque.slug}</p>
-        {context.permissions.has('mosque.manage') ?
-          <ProfileForm mosqueId={mosqueId} name={mosque.name}/> :
-          <p>Anda memiliki akses membaca profil masjid.</p>}
-      </section>
-      {canReadPrograms && <section className="card" style={{marginTop:18}}>
-        <h2>Program & Kegiatan Masjid</h2>
-        <p>Agenda tercatat di database dan dipisahkan berdasarkan masjid. Waktu ditampilkan dalam WIB.</p>
-        {programs.length===0?<p>Belum ada program atau kegiatan yang tercatat.</p>:
-        <ul className="mosque-list">{programs.map(p=><li key={p.id}>
-          <div><strong>{p.title}</strong><p>{p.description??'Tanpa deskripsi'}</p>
-          <small>{new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(p.startsAt)} WIB</small></div>
-          <div><span>{p.status==='DRAFT'?'Draft':p.status==='PUBLISHED'?'Terbit':'Dibatalkan'}</span>{context.permissions.has('program.manage') && p.status!=='CANCELED' && <form action={changeProgramStatus.bind(null,mosqueId,p.id,p.status==='DRAFT'?'PUBLISHED':'CANCELED')}><button className="subtle-action" type="submit">{p.status==='DRAFT'?'Publikasikan':'Batalkan'}</button></form>}</div>
-        </li>)}</ul>}
-        {context.permissions.has('program.manage')&&<><h3>Tambah kegiatan</h3><ProgramForm mosqueId={mosqueId}/></>}
-      </section>}
-      <section className="card" style={{marginTop:18}}>
-        <h2>Ringkasan Operasional</h2>
-        <p>Keuangan, ZISWAF, dan jamaah belum diaktifkan. Tidak ada angka demo yang disamarkan menjadi data nyata.</p>
-      </section>
-      <p className="helper">Developed by MARKAZ DAKWAH DIGITAL</p>
+  const draft=programs.filter(p=>p.status==='DRAFT').length;
+  const published=programs.filter(p=>p.status==='PUBLISHED').length;
+  const canceled=programs.filter(p=>p.status==='CANCELED').length;
+  const pct=programs.length>0?Math.round(published/programs.length*100):0;
+  return <DashboardFrame mosqueName={mosque.name} actions={<Link className="premium-link" href="/dashboard">← Daftar Masjid</Link>}>
+    <section className="premium-welcome"><div><span className="welcome-kicker">✧ MANAJEMEN MASJID</span><h1>{mosque.name}</h1><p>Pengelolaan amanah masjid yang modern, profesional, dan transparan.</p><span className="welcome-chip">● Masjid aktif · Akses sesuai kewenangan</span></div><span className="welcome-emblem" aria-hidden="true">🕌</span></section>
+    <div className="premium-stats">
+      <StatCard icon="🗓️" title="TOTAL KEGIATAN" value={canReadPrograms?programs.length:'—'} caption={canReadPrograms?'Maksimal 50 kegiatan terbaru':'Akses terbatas'} tone="blue"/>
+      <StatCard icon="✅" title="DIPUBLIKASIKAN" value={canReadPrograms?published:'—'} caption="Program aktif tercatat" tone="green"/>
+      <StatCard icon="📝" title="DRAFT PROGRAM" value={canReadPrograms?draft:'—'} caption="Belum dipublikasikan" tone="gold"/>
+      <StatCard icon="💰" title="KEUANGAN" value="—" caption="Modul belum diaktifkan" tone="purple"/>
     </div>
-  </main>;
+    <div className="premium-two-cols">
+      <Panel id="profil" icon="🏛️" title="PROFIL MASJID" sub="Informasi identitas resmi masjid.">
+       <p className="data-label">IDENTITAS MASJID</p><p className="slug-value">{mosque.slug}</p>
+       {context.permissions.has('mosque.manage')?<ProfileForm mosqueId={mosqueId} name={mosque.name}/>:<p className="info-note">Anda hanya memiliki akses membaca profil masjid.</p>}
+      </Panel>
+      <Panel icon="📊" title="STATUS KEGIATAN" sub="Visualisasi menggunakan data kegiatan yang tercatat.">
+       {canReadPrograms&&programs.length>0?<div className="donut-area">
+         <div className="status-donut" style={{background:'conic-gradient(#12b87a 0% '+pct+'%, #f0bb36 '+pct+'% '+(pct+Math.round(draft/programs.length*100))+'%, #d85865 '+(pct+Math.round(draft/programs.length*100))+'% 100%)'}}><span><strong>{pct}%</strong><small>Terbit</small></span></div>
+         <div className="donut-legend"><p><i className="dot published"/> Terbit <strong>{published}</strong></p><p><i className="dot draft"/> Draft <strong>{draft}</strong></p><p><i className="dot canceled"/> Dibatalkan <strong>{canceled}</strong></p></div>
+       </div>:<div className="empty-chart"><span>◉</span><p>{canReadPrograms?'Belum ada kegiatan untuk divisualisasikan.':'Anda tidak mempunyai izin membaca kegiatan.'}</p></div>}
+      </Panel>
+    </div>
+    {canReadPrograms&&<Panel id="kegiatan" icon="🗓️" title="PROGRAM & KEGIATAN" sub="Agenda nyata sesuai kewenangan dan data masjid. Waktu ditampilkan dalam WIB.">
+     {programs.length===0?<p className="info-note">Belum ada program atau kegiatan yang tercatat.</p>:
+      <div className="premium-program-list">{programs.map(p=><article className="premium-program" key={p.id}>
+       <div className="program-bullet">📅</div><div className="program-body"><strong>{p.title}</strong><p>{p.description??'Tanpa deskripsi'}</p><small>{new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(p.startsAt)} WIB</small></div>
+       <div className="program-actions"><span className={'program-status '+p.status.toLowerCase()}>{p.status==='DRAFT'?'Draft':p.status==='PUBLISHED'?'Terbit':'Dibatalkan'}</span>{context.permissions.has('program.manage') && p.status!=='CANCELED'&&<form action={changeProgramStatus.bind(null,mosqueId,p.id,p.status==='DRAFT'?'PUBLISHED':'CANCELED')}><button className="subtle-action" type="submit">{p.status==='DRAFT'?'Publikasikan':'Batalkan'}</button></form>}</div>
+      </article>)}</div>}
+     {context.permissions.has('program.manage')&&<div className="premium-input-panel"><h3>✦ Tambah Kegiatan Baru</h3><p>Isi formulir untuk menyimpan kegiatan pada database masjid ini.</p><ProgramForm mosqueId={mosqueId}/></div>}
+    </Panel>}
+    <Panel icon="💡" title="RINGKASAN OPERASIONAL" sub="Pengembangan bertahap sesuai kebutuhan pengelola masjid.">
+      <div className="pending-module-grid">{[['💰','Keuangan'],['🤲','ZISWAF'],['👥','Jamaah'],['🏗️','Aset']].map(([icon,name])=><div key={name} className="pending-module"><span>{icon}</span><strong>{name}</strong><small>Belum aktif</small></div>)}</div>
+      <p className="info-note">Belum ada angka keuangan, jamaah, atau donasi yang diaktifkan. Grafik tidak menggunakan data simulasi.</p>
+    </Panel>
+  </DashboardFrame>;
 }
