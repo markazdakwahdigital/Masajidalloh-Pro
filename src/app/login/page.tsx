@@ -20,7 +20,7 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
         <input id="password" name="password" type="password" autoComplete="current-password" required/>
         <button type="submit">Masuk dengan aman</button>
       </form>
-      <p className="helper">Pendaftaran pengurus dilakukan melalui administrator masjid. Pendaftaran mandiri belum diaktifkan.</p>
+      <p className="helper">Akun tenant diaktifkan setelah verifikasi administrator. Belum memiliki akun masjid? <Link href="/paket">Lihat paket dan ajukan pendaftaran.</Link></p>
       <Link href="/">Kembali ke halaman utama</Link>
     </section>
   </main>;

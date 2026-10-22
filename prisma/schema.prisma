@@ -101,3 +101,18 @@ model MosqueProgram {
   createdBy   User @relation(fields: [createdById], references: [id], onDelete: Restrict)
   @@index([mosqueId, startsAt])
 }
+
+model TenantApplication {
+  id          String    @id @default(uuid()) @db.Uuid
+  mosqueName  String
+  city        String
+  address     String
+  contactName String
+  email       String
+  whatsapp    String
+  plan        String    @default("BASIC")
+  status      String    @default("PENDING")
+  submittedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+  @@index([email, submittedAt])
+}
