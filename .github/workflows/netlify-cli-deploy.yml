@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# Publish premium UI plus original clear 512px brand logo, regenerate PWA icons.
+# Publish verified dashboard toolbar: crisp HQ logo, Kemenag prayer times, date/hijri and real DKM profile.
 on:
   workflow_dispatch:
   push:
