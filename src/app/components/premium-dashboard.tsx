@@ -20,7 +20,7 @@ export function DashboardFrame({children,mosqueName,overview=false,actions,profi
  return <div className="premium-app" id="dashboard">
    <aside className="premium-sidebar">
     <Link href="/" className="side-brand">
-      <Image src="/brand/logo.webp" alt="Logo MASAJIDALLOH PRO" width={104} height={102} className="brand-mark-large" unoptimized />
+      <Image src="/brand/logo.webp?v=2" alt="Logo MASAJIDALLOH PRO" width={104} height={102} className="brand-mark-large" unoptimized />
       <span className="brand-name">MASAJIDALLOH <b>PRO</b></span>
       <small>Professional Mosque Management Platform</small>
     </Link>

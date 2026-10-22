@@ -6,7 +6,7 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
   const {error} = await searchParams;
   return <main className="auth-page">
     <section className="auth-card">
-      <Image className="official-logo auth-logo" src="/brand/logo.webp" alt="Logo resmi MASAJIDALLOH PRO" width={108} height={108} unoptimized />
+      <Image className="official-logo auth-logo" src="/brand/logo.webp?v=2" alt="Logo resmi MASAJIDALLOH PRO" width={108} height={108} unoptimized />
       <p className="eyebrow">MASAJIDALLOH PRO</p>
       <h1>Masuk ke Dashboard Masjid</h1>
       <p>Professional Mosque Management Platform</p>
