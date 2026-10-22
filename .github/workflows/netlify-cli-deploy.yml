@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# PWA install-helper release: trigger one controlled deployment and verify the public endpoints.
+# Manifest MIME-type fix release: publish after public visitor access was enabled.
 on:
   workflow_dispatch:
   push:
