@@ -24,7 +24,7 @@ for (const [path, mime] of expected) {
   }
   if (response?.status === 401 || response?.status === 403) {
     console.error('[PWA] BLOCKED ' + path + ': HTTP ' + response.status + '. Check Netlify Project configuration > General > Visitor access > Project visibility. Production must be Public.');
-    process.exitCode = 1;
+    errors++;
     break;
   }
   if (!response?.ok) {
