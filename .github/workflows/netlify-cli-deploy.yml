@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# PWA and official brand logo release: trigger one controlled deployment from the existing feature branch.
+# PWA install-helper release: trigger one controlled deployment and verify the public endpoints.
 on:
   workflow_dispatch:
   push:
@@ -107,3 +107,8 @@ jobs:
         # GitHub Secrets supply them only to this trusted manual deployment job.
         # CLI builds on GitHub runner and uploads runtime output to the existing Netlify project.
         run: npx --yes netlify-cli@latest deploy --prod --site "$NETLIFY_SITE_ID" --context production
+
+      - name: Verify public PWA endpoints after deployment
+        env:
+          MDD_SITE_ORIGIN: https://masajidallohpro.netlify.app
+        run: node scripts/check-pwa-live.mjs
