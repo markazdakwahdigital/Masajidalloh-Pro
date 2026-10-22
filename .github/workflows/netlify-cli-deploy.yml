@@ -1,6 +1,6 @@
 name: Deploy Netlify via GitHub runner
 
-# Publish premium royal blue and gold app interface; real data and tenant isolation unchanged.
+# Publish premium UI plus original clear 512px brand logo, regenerate PWA icons.
 on:
   workflow_dispatch:
   push:
