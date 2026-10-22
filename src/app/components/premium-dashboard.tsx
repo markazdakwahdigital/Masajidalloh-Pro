@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import ControlToolbar from './control-toolbar';
 
 const moduleLinks = [
   ['🏛️','Ringkasan Eksekutif','dashboard','active'],
@@ -15,7 +16,7 @@ const moduleLinks = [
   ['📊','Laporan & Analitik','laporan','soon'],
 ] as const;
 
-export function DashboardFrame({children,mosqueName,overview=false,actions}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode}){
+export function DashboardFrame({children,mosqueName,overview=false,actions,profileName,profileRole,searchItems=[]}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode;profileName?:string;profileRole?:string;searchItems?:Array<{label:string;href:string}>}){
  return <div className="premium-app" id="dashboard">
    <aside className="premium-sidebar">
     <Link href="/" className="side-brand">
@@ -37,11 +38,8 @@ export function DashboardFrame({children,mosqueName,overview=false,actions}:{chi
     <div className="side-foot"><span>✦</span> Masjid Makmur, Adaptif dan Berdaya <small>Developed by MARKAZ DAKWAH DIGITAL</small></div>
    </aside>
    <div className="premium-main">
-    <header className="premium-topbar">
-      <div className="mobile-brand"><Image src="/brand/logo.webp" width={44} height={44} alt="Logo MASAJIDALLOH PRO" unoptimized/><strong>MASAJIDALLOH <span>PRO</span></strong></div>
-      <div className="topbar-context"><span className="mini-kicker">SMART MOSQUE CONTROL CENTER</span><strong>{mosqueName||'Ekosistem Manajemen Masjid'}</strong></div>
-      <div className="topbar-actions">{actions??<Link href="/" className="premium-link">⌂ Beranda</Link>}</div>
-    </header>
+    <ControlToolbar mosqueName={mosqueName} profileName={profileName} profileRole={profileRole} searchItems={searchItems} backHref={!overview?'/dashboard':undefined} />
+    {actions&&<div className="mdd-top-actions">{actions}</div>}
     <main className="premium-content">{children}</main>
     <footer className="premium-footer">MASAJIDALLOH PRO · Professional Mosque Management Platform · Developed by MARKAZ DAKWAH DIGITAL</footer>
    </div>

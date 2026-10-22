@@ -27,8 +27,14 @@ export default async function MosquePage({params}:{params:Promise<{mosqueId:stri
   const draft=programs.filter(p=>p.status==='DRAFT').length;
   const published=programs.filter(p=>p.status==='PUBLISHED').length;
   const canceled=programs.filter(p=>p.status==='CANCELED').length;
+  // Identify Ketua DKM only from an actual active membership and role. Never assume the current user is Ketua DKM.
+  let ketuaName: string | undefined;
+  try {
+   const ketua = await prisma.mosqueMembership.findFirst({where:{mosqueId:context.mosqueId,status:'ACTIVE',roles:{some:{role:{key:'ketua_dkm'}}}},select:{user:{select:{name:true}}}});
+   ketuaName=ketua?.user.name;
+  } catch { /* Role is optional in the current pilot schema. */ }
   const pct=programs.length>0?Math.round(published/programs.length*100):0;
-  return <DashboardFrame mosqueName={mosque.name} actions={<Link className="premium-link" href="/dashboard">← Daftar Masjid</Link>}>
+  return <DashboardFrame mosqueName={mosque.name} profileName={ketuaName} profileRole={ketuaName?'Ketua DKM':'Ketua DKM · belum ditetapkan'} searchItems={[{label:'Ringkasan Eksekutif',href:'#dashboard'},{label:'Profil Masjid',href:'#profil'},...(canReadPrograms?[{label:'Program dan Kegiatan',href:'#kegiatan'},...programs.map(p=>({label:p.title,href:'#kegiatan'}))]:[])]} actions={<Link className="premium-link" href="/dashboard">← Daftar Masjid</Link>}>
     <section className="premium-welcome"><div><span className="welcome-kicker">✧ MANAJEMEN MASJID</span><h1>{mosque.name}</h1><p>Pengelolaan amanah masjid yang modern, profesional, dan transparan.</p><span className="welcome-chip">● Masjid aktif · Akses sesuai kewenangan</span></div><span className="welcome-emblem" aria-hidden="true">🕌</span></section>
     <div className="premium-stats">
       <StatCard icon="🗓️" title="TOTAL KEGIATAN" value={canReadPrograms?programs.length:'—'} caption={canReadPrograms?'Maksimal 50 kegiatan terbaru':'Akses terbatas'} tone="blue"/>

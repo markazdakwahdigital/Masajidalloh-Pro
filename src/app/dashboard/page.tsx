@@ -16,18 +16,20 @@ export default async function Dashboard() {
   } catch { /* No authorized context. */ }
   if (!authId) redirect('/login');
   let mosques: Array<{id:string;name:string}> = [];
+  let profileName: string | undefined;
   let configured = true;
   try {
     const identity = await prisma.user.findUnique({
       where: { authUserId: authId },
-      select: { memberships: {
+      select: { name:true, memberships: {
         where: { status: 'ACTIVE', mosque: {status:'ACTIVE'}, roles: { some: {role: {permissions: {some: {permission: {key: 'mosque.read'}}}}} } },
         select: { mosque: { select:{ id:true, name:true } } },
       } },
     });
     mosques = identity?.memberships.map(x=>x.mosque) ?? [];
+    profileName = identity?.name;
   } catch { configured = false; }
-  return <DashboardFrame overview actions={<form action={logout}><button className="topbar-logout" type="submit">↪ Keluar</button></form>}>
+  return <DashboardFrame overview profileName={profileName} profileRole="Pengurus Masjid" searchItems={[{label:'Dashboard Pengurus',href:'/dashboard'},...mosques.map(m=>({label:m.name,href:'/dashboard/masjid/'+m.id}))]} actions={<form action={logout}><button className="topbar-logout" type="submit">↪ Keluar</button></form>}>
    <section className="premium-welcome"><div><span className="welcome-kicker">✧ DASHBOARD PENGURUS</span><h1>Assalamu’alaikum, Selamat Datang</h1><p>Pusat kendali operasional masjid. Seluruh informasi yang ditampilkan berasal dari hak akses akun Anda.</p></div><span className="welcome-emblem" aria-hidden="true">🕌</span></section>
    <div className="premium-stats"><StatCard icon="🕌" title="MASJID TERDAFTAR" value={mosques.length} caption="Masjid yang dapat Anda akses" tone="blue"/><StatCard icon="🔐" title="AKSES PENGURUS" value="Aktif" caption="Sesi terautentikasi" tone="green"/><StatCard icon="📈" title="DATA KEUANGAN" value="—" caption="Modul belum diaktifkan" tone="gold"/></div>
    <Panel icon="🕌" title="DAFTAR MASJID" sub="Pilih masjid untuk membuka profil, program, dan kegiatan operasional.">
