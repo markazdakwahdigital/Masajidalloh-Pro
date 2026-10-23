@@ -35,13 +35,15 @@ jobs:
         if: always()
         shell: bash
         env:
-          RESULT: ${{ steps.vinext.outcome }}\n          BUILD_RESULT: ${{ steps.vinext_build.outcome }}
+          RESULT: ${{ steps.vinext.outcome }}
+          BUILD_RESULT: ${{ steps.vinext_build.outcome }}
         run: |
           {
             echo '## Cloudflare vinext preflight'
             echo 'This workflow does not deploy or use production credentials.'
             echo ''
-            echo "Static scan result: **${RESULT}**"\n            echo "Build result: **${BUILD_RESULT}**"
+            echo "Static scan result: **${RESULT}**"
+            echo "Build result: **${BUILD_RESULT}**"
             echo ''
             echo 'Check details in the uploaded artifact; scan success does not prove production runtime, Prisma DB connectivity or security.'
           } >> "$GITHUB_STEP_SUMMARY"
@@ -50,6 +52,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vinext-check-report
-          path: |\n            vinext-check.log\n            vinext-build.log
+          path: |
+            vinext-check.log
+            vinext-build.log
           if-no-files-found: warn
           retention-days: 14
