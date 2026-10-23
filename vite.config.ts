@@ -1,8 +1,13 @@
-// Experimental vinext build configuration for compatibility testing only.
-// Cloudflare production runtime and database adapter are NOT configured yet.
+// Cloudflare Workers RSC build pilot. No production credentials or account IDs.
 import { defineConfig } from 'vite';
 import vinext from 'vinext';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig({
-  plugins: [vinext()],
+  plugins: [
+    vinext(),
+    cloudflare({
+      viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
+    }),
+  ],
 });
