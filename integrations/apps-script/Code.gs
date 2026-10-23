@@ -30,13 +30,13 @@ function onTenantFormSubmit(event) {
     const adminEmail = PropertiesService.getScriptProperties()
       .getProperty(MDD.ADMIN_EMAIL_PROP);
     // Email is optional and contains no applicant PII.
-    if (adminEmail && /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(adminEmail)) {
+    if (adminEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) {
       MailApp.sendEmail({
         to: adminEmail,
         subject: '[MASAJIDALLOH PRO] Pendaftaran minat tenant baru',
-        body: 'Ada formulir minat tenant baru pada spreadsheet terbatas.\\n' +
-          'Sheet: ' + sheet.getName() + '\\n' +
-          'Baris: ' + row + '\\n' +
+        body: 'Ada formulir minat tenant baru pada spreadsheet terbatas.\n' +
+          'Sheet: ' + sheet.getName() + '\n' +
+          'Baris: ' + row + '\n' +
           'Buka Google Sheets langsung untuk memverifikasi. ' +
           'JANGAN membuat akun/menagih pembayaran otomatis.'
       });
