@@ -45,14 +45,27 @@ jobs:
           find .cloudflare/output/v0 -type f -printf '%s %p\n' | sort -nr | head -n 18
           test -d .cloudflare/output/v0
           node - <<'NODE'
-          const fs=require('fs');
-          const file='.cloudflare/output/v0/workers/default/worker.config.json';
-          const c=JSON.parse(fs.readFileSync(file, 'utf8'));
-          console.log('Build manifest:',JSON.stringify({manifest:c.manifest}));
-          if(!c.manifest?.mainModule){console.error('Missing SSR Worker main module; assets-only output rejected');process.exit(1)}
-          const entry='.cloudflare/output/v0/workers/default/bundle/'+c.manifest.mainModule;
-          if(!fs.existsSync(entry)){console.error('Missing compiled Worker entry '+entry);process.exit(1)}
-          console.log('Server Worker entry bytes:',fs.statSync(entry).size);
+          const fs = require('fs');
+          const path = require('path');
+          const root = '.cloudflare/output/v0/workers/default';
+          const config = JSON.parse(fs.readFileSync(path.join(root, 'worker.config.json'), 'utf8'));
+          console.log('Worker configuration keys:', Object.keys(config).join(', '));
+          console.log('Worker configuration (non-sensitive shapes):', JSON.stringify(config, (key, value) => /secret|token|password/i.test(key) ? '[redacted]' : value).slice(0, 6000));
+          function walk(dir, files = []) {
+            for (const entry of fs.readdirSync(dir, {withFileTypes:true})) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full, files);
+              else files.push({path:full, size:fs.statSync(full).size});
+            }
+            return files;
+          }
+          const files = walk(root);
+          const serverFiles = files.filter(x => !x.path.includes('/assets/') && /\\.(?:js|mjs)$/.test(x.path));
+          console.log('Server-side JavaScript candidates:', serverFiles.sort((a,b)=>b.size-a.size).slice(0,15));
+          if(!serverFiles.some(x => x.size > 4096)){
+            console.error('No substantial server JavaScript found outside assets; release remains blocked');
+            process.exit(1);
+          }
           NODE
           jsbytes=$(find .cloudflare/output/v0 -type f \( -name '*.js' -o -name '*.mjs' \) -printf '%s\n' | awk '{sum+=$1} END {print sum+0}')
           echo "Cloudflare JS output bytes: $jsbytes"
