@@ -32,7 +32,7 @@ jobs:
           set -o pipefail
           npx --yes vinext check 2>&1 | tee vinext-check.log
       - name: Install isolated vinext build tools
-        run: npm install --no-save --no-audit --no-fund vinext vite @vitejs/plugin-react @vitejs/plugin-rsc react-server-dom-webpack
+        run: npm install --no-save --no-audit --no-fund vinext vite @vitejs/plugin-react @vitejs/plugin-rsc react-server-dom-webpack @cloudflare/vite-plugin wrangler
       - name: Attempt vinext production bundle (no publish)
         id: vinext_build
         run: |
