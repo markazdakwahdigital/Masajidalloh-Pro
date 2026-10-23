@@ -1,0 +1,47 @@
+name: Cloudflare migration compatibility audit
+on:
+  push:
+    branches: [feature/cloudflare-gas-pilot]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    name: vinext static compatibility check (no deployment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+      - name: Run vinext compatibility scan
+        id: vinext
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx --yes vinext check 2>&1 | tee vinext-check.log
+      - name: Publish findings
+        if: always()
+        shell: bash
+        env:
+          RESULT: ${{ steps.vinext.outcome }}
+        run: |
+          {
+            echo '## Cloudflare vinext preflight'
+            echo 'This workflow does not deploy or use production credentials.'
+            echo ''
+            echo "Result: **${RESULT}**"
+            echo ''
+            echo 'Check details in the uploaded artifact; scan success does not prove production runtime, Prisma DB connectivity or security.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload compatibility output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vinext-check-report
+          path: vinext-check.log
+          if-no-files-found: warn
+          retention-days: 14
