@@ -101,3 +101,7 @@ Official guide: https://developers.cloudflare.com/workers/framework-guides/web-a
 - Dependency lockfile now commits the tested toolchain. CI uses `npm ci`, removes its second unpinned toolchain install, and selects Node 24.22.0 to satisfy cf's declared engine requirement.
 - Three required runtime bindings are declared as secrets: DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. Only DATABASE_URL is privileged; public Supabase configuration must also be available at build time for client components. No production secret values are committed.
 - Remote deployment, real database connectivity, authenticated sessions and realtime updates remain unverified. Browser connection is unavailable in the current session. Existing production site is unchanged.
+
+### CI runtime verification — 2026-10-24
+
+[Run 40036570708](https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/40036570708), commit `654a61f`, passed all gates: locked install, Prisma generate, compatibility scan, production Worker build, manifest/module validation, deployment dry-run, 14 existing tests, TypeScript, lint, and actual workerd smoke checks. `/`, `/login`, `/paket`, `/daftar-masjid` returned SSR HTML; anonymous dashboard requests redirected to login; health and PWA assets passed. This supersedes the assets-only server build blocker above. It does not prove real authenticated sessions, database connectivity, realtime synchronization or a live Cloudflare deployment.

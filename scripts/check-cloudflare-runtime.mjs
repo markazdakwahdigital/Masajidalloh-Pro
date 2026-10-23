@@ -35,6 +35,24 @@ try {
     assert.equal(new URL(response.headers.get('location'), base).pathname, '/login');
     console.log(`PASS ${path}: anonymous user redirected`);
   }
+  // Submit the real progressive-enhancement form with invalid empty fields.
+  // Validation must redirect before making any request to Supabase.
+  const loginHtml = await (await request('/login')).text();
+  const actionName = loginHtml.match(/name="(\$ACTION_ID_[^"]+)"/)?.[1];
+  assert.ok(actionName, 'Login form must expose its server action');
+  const form = new FormData();
+  form.set(actionName, '');
+  form.set('email', '');
+  form.set('password', '');
+  const invalidLogin = await fetch(base + '/login', {
+    method: 'POST', body: form, redirect: 'manual',
+    headers: { origin: base }, signal: AbortSignal.timeout(10000),
+  });
+  assert.ok([302, 303, 307, 308].includes(invalidLogin.status), 'Login server action must redirect');
+  const invalidLocation = new URL(invalidLogin.headers.get('location'), base);
+  assert.equal(invalidLocation.pathname, '/login');
+  assert.equal(invalidLocation.searchParams.get('error'), 'invalid');
+  console.log('PASS login form Server Action rejects invalid input');
   const manifest = await request('/manifest.webmanifest');
   assert.equal(manifest.status, 200);
   assert.equal((await manifest.json()).display, 'standalone');
