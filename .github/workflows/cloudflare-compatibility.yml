@@ -38,6 +38,8 @@ jobs:
         run: |
           set -o pipefail
           DATABASE_URL=postgresql://test:test@localhost:5432/test npx vite build 2>&1 | tee vinext-build.log
+      - name: Check Worker upload bundle without deployment
+        run: npx wrangler deploy --dry-run --outdir ./worker-dryrun
       - name: Publish findings
         if: always()
         shell: bash
