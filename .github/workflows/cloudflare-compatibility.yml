@@ -17,6 +17,14 @@ jobs:
           node-version: '22'
       - name: Install project dependencies
         run: npm install --no-audit --no-fund
+      - name: Generate Rust-free Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+      - name: Verify Prisma Rust-free client
+        run: |
+          grep -Eq 'engineType[[:space:]]*=[[:space:]]*"client"' prisma/schema.prisma
+          test ! -e node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node
       - name: Run vinext compatibility scan
         id: vinext
         continue-on-error: true
@@ -29,7 +37,7 @@ jobs:
         id: vinext_build
         run: |
           set -o pipefail
-          npx vite build 2>&1 | tee vinext-build.log
+          DATABASE_URL=postgresql://test:test@localhost:5432/test npx vite build 2>&1 | tee vinext-build.log
       - name: Publish findings
         if: always()
         shell: bash
