@@ -27,7 +27,6 @@ jobs:
         run: npm install --no-save --no-audit --no-fund vinext vite @vitejs/plugin-react @vitejs/plugin-rsc react-server-dom-webpack
       - name: Attempt vinext production bundle (no publish)
         id: vinext_build
-        continue-on-error: true
         run: |
           set -o pipefail
           npx vite build 2>&1 | tee vinext-build.log
