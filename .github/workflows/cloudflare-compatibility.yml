@@ -40,6 +40,20 @@ jobs:
           DATABASE_URL=postgresql://test:test@localhost:5432/test npx vite build 2>&1 | tee vinext-build.log
       - name: Check Worker upload bundle without deployment
         run: npx wrangler deploy --dry-run --outdir ./worker-dryrun
+      - name: Inspect Worker build output and reject empty deployment
+        shell: bash
+        run: |
+          echo 'Generated Worker deployment config:'
+          node -e 'const c=require("./dist/client/wrangler.json");console.log(JSON.stringify({name:c.name,main:c.main,assets:c.assets,compatibility_date:c.compatibility_date,compatibility_flags:c.compatibility_flags},null,2))'
+          echo 'Largest Worker dry-run files:'
+          find worker-dryrun -type f -printf '%s %p\n' | sort -nr | head -n 12
+          # A tiny asset-only Worker cannot serve authenticated server routes.
+          size=$(find worker-dryrun -type f \( -name '*.js' -o -name '*.mjs' \) -printf '%s\n' | awk '{sum+=$1} END {print sum+0}')
+          echo "Bundled JS bytes: $size"
+          if [ "$size" -lt 4096 ]; then
+            echo "::error::Cloudflare deployment bundle is unexpectedly small; SSR and login Worker likely absent. Do not deploy."
+            exit 1
+          fi
       - name: Publish findings
         if: always()
         shell: bash
