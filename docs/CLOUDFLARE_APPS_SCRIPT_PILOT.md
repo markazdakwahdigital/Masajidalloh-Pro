@@ -82,3 +82,11 @@ Official guide: https://developers.cloudflare.com/workers/framework-guides/web-a
 - Worker **runtime not yet tested**; remaining: create/verify Cloudflare-specific vinext config and worker binding, test pg TCP/TLS with Supabase Transaction Pooler under `nodejs_compat`, confirm secrets and SSR cookies on live test Worker, verify tenant isolation and quotas.
 - IMPORTANT: React, Prisma and adapter upgrades are not intended for the legacy Netlify production branch; do not merge to `main` blindly.
 - Framework guide: https://www.prisma.io/docs/orm/v6/prisma-client/deployment/edge/deploy-to-cloudflare
+
+### Cloudflare Worker build-output audit — 2026-10-23
+
+- Config now uses Cloudflare Vite Plugin **2.0.0-beta.v.3**, `cloudflare.config.ts`, and the `cf` CLI **1.0.0-beta.20**, solely on migration branch. It also uses the real Cloudflare plugin in Vite's RSC environment.
+- GitHub Actions [39990814328](https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39990814328) successfully generated Cloudflare v2 build output under `.cloudflare/output/v0` (but this alone does not prove functional SSR).
+- A stricter gate in [39991132993](https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39991132993) **blocked release**: `workers/default/worker.config.json` has no `manifest.mainModule`. The output is assets-only; server login/dynamic tenant routes would not run.
+- **DO NOT DEPLOY / DO NOT PROMOTE:** diagnose vinext RSC Worker entrypoint generation with the v2 Cloudflare Vite plugin. Consider running the official `vinext init --platform=cloudflare` in a disposable test checkout, comparing generated `cloudflare.config.ts` and `vite.config.ts`; never auto-create paid cache resources or inject credentials.
+- Current Cloudflare Free integration has **no Worker deployed, no database connection tested, no login proven**. Existing Netlify live site and Supabase database untouched.
