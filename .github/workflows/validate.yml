@@ -18,6 +18,12 @@ jobs:
         run: npx prisma generate
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - name: Verify Netlify-compatible Prisma Query Engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node || { echo "::error::Prisma RHEL OpenSSL 3 engine missing; Netlify login would fail with HTTP 502."; exit 1; }
+          echo "Prisma engine for Netlify rhel-openssl-3.0.x is bundled."
       - name: Validate Prisma schema
         run: npx prisma validate
         env:
