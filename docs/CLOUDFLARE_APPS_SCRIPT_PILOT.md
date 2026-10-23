@@ -73,3 +73,12 @@ Official guide: https://developers.cloudflare.com/workers/framework-guides/web-a
 - GitHub evidence: https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39986800102
 - Remaining blockers: validate the exact Workers build output, select and implement a Cloudflare-compatible Prisma/Postgres adapter, secret management, runtime login/logout, PWA, tenant isolation, and Cloudflare Free quota behavior. No credentials or Cloudflare Worker were provisioned.
 - React and ESM changes are isolated on `feature/cloudflare-gas-pilot`; legacy Netlify runtime is unchanged.
+
+### Rust-free Prisma adapter migration — 2026-10-23
+- Migration branch only: upgraded Prisma CLI and client to **6.19.0** and added matching `@prisma/adapter-pg`, `pg`, and `@types/pg`.
+- Changed `schema.prisma` generator to `engineType = "client"`, removing native RHEL/Debian Rust engine requirement.
+- `src/lib/db.ts` now uses PrismaPg with server-only `DATABASE_URL`. Do **not** expose the URL in client or deploy if absent.
+- GitHub Actions [39987479118](https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39987479118): Rust-free Prisma generate and `npx vite build` both passed with non-production placeholder DB URL; no connection was attempted.
+- Worker **runtime not yet tested**; remaining: create/verify Cloudflare-specific vinext config and worker binding, test pg TCP/TLS with Supabase Transaction Pooler under `nodejs_compat`, confirm secrets and SSR cookies on live test Worker, verify tenant isolation and quotas.
+- IMPORTANT: React, Prisma and adapter upgrades are not intended for the legacy Netlify production branch; do not merge to `main` blindly.
+- Framework guide: https://www.prisma.io/docs/orm/v6/prisma-client/deployment/edge/deploy-to-cloudflare
