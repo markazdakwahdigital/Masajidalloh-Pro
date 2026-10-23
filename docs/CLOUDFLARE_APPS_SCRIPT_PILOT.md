@@ -59,3 +59,9 @@ Official guide: https://developers.cloudflare.com/workers/framework-guides/web-a
 - [ ] Google Form opt-in, protected Sheet and installable trigger tested
 - [ ] rollback, backups, privacy notice and request limits in place
 - [ ] production host switched after owner approval
+
+### Real build attempt (2026-10-23)
+- GitHub Actions run [39983938184](https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39983938184) revealed **npm ERESOLVE** during installation of the vinext 1.3.0 toolchain: the existing `react@19.1.4` does not satisfy vinext's declared `react@^19.3.1` peer requirement.
+- Consequently **the Vite build did not run**; the 96% static scan is not a successful build or Cloudflare deployment.
+- Next test must upgrade React and matching dependencies *only on a migration test branch*, reconcile lockfile, run existing unit/Next.js checks, then attempt `vite build`. Do not use `--force` or `--legacy-peer-deps` to mask incompatibilities.
+- Cloudflare dashboard is not accessible via an installed connector in this chat; the owner must authorize a browser-controlled Work session or an approved hosting integration before remote deployment can be performed.
