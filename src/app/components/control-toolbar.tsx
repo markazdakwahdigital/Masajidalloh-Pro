@@ -12,10 +12,14 @@ const CITY_OPTIONS = [
  {name:'Balikpapan',tz:'Asia/Makassar'},{name:'Jayapura',tz:'Asia/Jayapura'}
 ];
 const SALAT=[['Subuh','Fajr'],['Dzuhur','Dhuhr'],['Ashar','Asr'],['Maghrib','Maghrib'],['Isya','Isha']];
+function safeHijri(d:Date,tz:string):string {
+ try { return new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura',{timeZone:tz,day:'numeric',month:'long',year:'numeric'}).format(d); }
+ catch { return 'Tanggal Hijriah belum tersedia'; }
+}
 function dateParts(d:Date,tz:string){
  return {
   greg:new Intl.DateTimeFormat('id-ID',{timeZone:tz,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d),
-  hijri:new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura',{timeZone:tz,day:'numeric',month:'long',year:'numeric'}).format(d),
+  hijri:safeHijri(d,tz),
   time:new Intl.DateTimeFormat('id-ID',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false}).format(d),
   key:new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d)
  };
@@ -31,8 +35,11 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
  useEffect(()=>{
   setNow(new Date());
   const n=window.setInterval(()=>setNow(new Date()),60_000);
-  const stored=window.localStorage.getItem('mdd-mosque-prayer-city');
-  if(stored&&CITY_OPTIONS.some(x=>x.name===stored)) setCity(stored);
+  // Browser storage can throw in privacy-restricted PWAs; it must not crash the dashboard.
+  try {
+    const stored=window.localStorage.getItem('mdd-mosque-prayer-city');
+    if(stored&&CITY_OPTIONS.some(x=>x.name===stored)) setCity(stored);
+  } catch { /* Fall back to requiring a city selection. */ }
   return()=>window.clearInterval(n);
  },[]);
  const tz=CITY_OPTIONS.find(c=>c.name===city)?.tz||'Asia/Jakarta';
@@ -68,7 +75,7 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
      <button className="mdd-prayer-toggle" type="button" aria-expanded={showSalat} onClick={()=>setShowSalat(!showSalat)}><span className="mdd-gold-icon">☪</span><span><strong>Waktu Salat</strong><small>{city?city+' · '+(timings?'Jadwal hari ini':'Memuat...'):'Pilih kota masjid'}</small></span><span aria-hidden="true">⌄</span></button>
      {showSalat&&<div className="mdd-popup mdd-prayer-popup">
        <label htmlFor="mdd-prayer-city">Lokasi untuk jadwal salat</label>
-       <select id="mdd-prayer-city" value={city} onChange={e=>{setCity(e.target.value);window.localStorage.setItem('mdd-mosque-prayer-city',e.target.value);}}><option value="">Pilih kota...</option>{CITY_OPTIONS.map(c=><option key={c.name}>{c.name}</option>)}</select>
+       <select id="mdd-prayer-city" value={city} onChange={e=>{setCity(e.target.value);try{window.localStorage.setItem('mdd-mosque-prayer-city',e.target.value);}catch{/* Storage disabled */}}}><option value="">Pilih kota...</option>{CITY_OPTIONS.map(c=><option key={c.name}>{c.name}</option>)}</select>
        {timings?<div className="prayer-time-list">{SALAT.map(([name,key])=><div key={key}><span>{name}</span><strong>{timings[key]||'—'}</strong></div>)}</div>:<p className="prayer-hint">{error||'Pilih lokasi masjid agar jadwal ditampilkan. Jam dihitung menurut kota yang dipilih.'}</p>}
        <small className="prayer-credit">Sumber: AlAdhan, metode Kemenag (20). Periksa dengan jadwal resmi masjid setempat.</small>
      </div>}
