@@ -6,3 +6,9 @@ node_modules/
 *.log
 coverage/
 *.tsbuildinfo
+.cloudflare/
+dist/
+.wrangler/
+.vinext/
+.dev.vars
+.dev.vars.*

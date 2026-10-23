@@ -90,3 +90,14 @@ Official guide: https://developers.cloudflare.com/workers/framework-guides/web-a
 - A stricter gate in [39991132993](https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39991132993) **blocked release**: `workers/default/worker.config.json` has no `manifest.mainModule`. The output is assets-only; server login/dynamic tenant routes would not run.
 - **DO NOT DEPLOY / DO NOT PROMOTE:** diagnose vinext RSC Worker entrypoint generation with the v2 Cloudflare Vite plugin. Consider running the official `vinext init --platform=cloudflare` in a disposable test checkout, comparing generated `cloudflare.config.ts` and `vite.config.ts`; never auto-create paid cache resources or inject credentials.
 - Current Cloudflare Free integration has **no Worker deployed, no database connection tested, no login proven**. Existing Netlify live site and Supabase database untouched.
+
+### Server entrypoint repair — 2026-10-24
+
+- Root cause confirmed from run 40035373472 and vinext 1.3.0's installed initializer: typed Cloudflare v2 config omitted `worker.entrypoint`. The plugin therefore emitted an assets-only Worker even though Vite built RSC chunks elsewhere. Config now follows the initializer: `defineWorker`, `vinext/server/fetch-handler`, ASSETS binding and explicit static-asset routing.
+- Local production build now emits `manifest.mainModule` and actual server modules in `workers/default/bundle`. `cf deploy --dry-run --prebuilt --mode production` passed without uploading or provisioning resources. Compressed upload approximately 562 KiB on the first repaired build.
+- Added a manifest/module check and workerd HTTP smoke checks to CI. Smoke checks cover liveness, public SSR, anonymous dashboard redirects and PWA assets. They deliberately do not claim authenticated login, database access or realtime behavior.
+- Existing 14 tests passed locally. TypeScript passed; ESLint passed with existing component warnings after ignoring generated build output.
+- Local workerd could not start in this execution environment (`fatal library error, lookup self`); CI runtime result must be inspected before release. CI disables the optional inspector to avoid network-interface enumeration and uses dummy credentials only.
+- Dependency lockfile now commits the tested toolchain. CI uses `npm ci`, removes its second unpinned toolchain install, and selects Node 24.22.0 to satisfy cf's declared engine requirement.
+- Three required runtime bindings are declared as secrets: DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. Only DATABASE_URL is privileged; public Supabase configuration must also be available at build time for client components. No production secret values are committed.
+- Remote deployment, real database connectivity, authenticated sessions and realtime updates remain unverified. Browser connection is unavailable in the current session. Existing production site is unchanged.

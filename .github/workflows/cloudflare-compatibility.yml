@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24.22.0'
       - name: Install project dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Generate Rust-free Prisma Client
         run: npx prisma generate
         env:
@@ -31,47 +31,21 @@ jobs:
         run: |
           set -o pipefail
           npx --yes vinext check 2>&1 | tee vinext-check.log
-      - name: Install isolated vinext build tools
-        run: npm install --no-save --no-audit --no-fund vinext vite @vitejs/plugin-react @vitejs/plugin-rsc react-server-dom-webpack @cloudflare/vite-plugin wrangler
       - name: Attempt vinext production bundle (no publish)
         id: vinext_build
         run: |
           set -o pipefail
           DATABASE_URL=postgresql://test:test@localhost:5432/test npx vite build 2>&1 | tee vinext-build.log
-      - name: Inspect Cloudflare v2 Build Output (no publish)
-        shell: bash
-        run: |
-          echo 'Cloudflare output files:'
-          find .cloudflare/output/v0 -type f -printf '%s %p\n' | sort -nr | head -n 18
-          test -d .cloudflare/output/v0
-          node - <<'NODE'
-          const fs = require('fs');
-          const path = require('path');
-          const root = '.cloudflare/output/v0/workers/default';
-          const config = JSON.parse(fs.readFileSync(path.join(root, 'worker.config.json'), 'utf8'));
-          console.log('Worker configuration keys:', Object.keys(config).join(', '));
-          console.log('Worker configuration (non-sensitive shapes):', JSON.stringify(config, (key, value) => /secret|token|password/i.test(key) ? '[redacted]' : value).slice(0, 6000));
-          function walk(dir, files = []) {
-            for (const entry of fs.readdirSync(dir, {withFileTypes:true})) {
-              const full = path.join(dir, entry.name);
-              if (entry.isDirectory()) walk(full, files);
-              else files.push({path:full, size:fs.statSync(full).size});
-            }
-            return files;
-          }
-          const files = walk(root);
-          const serverFiles = files.filter(x => !x.path.includes('/assets/') && /\\.(?:js|mjs)$/.test(x.path));
-          console.log('Server-side JavaScript candidates:', serverFiles.sort((a,b)=>b.size-a.size).slice(0,15));
-          if(!serverFiles.some(x => x.size > 4096)){
-            console.error('No substantial server JavaScript found outside assets; release remains blocked');
-            process.exit(1);
-          }
-          NODE
-          jsbytes=$(find .cloudflare/output/v0 -type f \( -name '*.js' -o -name '*.mjs' \) -printf '%s\n' | awk '{sum+=$1} END {print sum+0}')
-          echo "Cloudflare JS output bytes: $jsbytes"
-          test "$jsbytes" -ge 4096 || { echo "::error::Cloudflare Worker bundle missing or empty"; exit 1; }
+      - name: Validate Worker entrypoint and module
+        run: node scripts/check-cloudflare-output.mjs
       - name: Validate deployable Cloudflare Worker locally (no upload)
         run: npx cf deploy --dry-run --prebuilt --mode production
+      - name: Existing authorization and PWA tests
+        run: node --experimental-strip-types --test tests/*.test.mjs
+      - name: Type check and lint
+        run: npm run typecheck && npm run lint
+      - name: Test actual workerd runtime (dummy config, no production database)
+        run: node scripts/check-cloudflare-runtime.mjs
       - name: Publish findings
         if: always()
         shell: bash
