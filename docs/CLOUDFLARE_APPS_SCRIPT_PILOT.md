@@ -1,6 +1,14 @@
 # Cloudflare + Google Apps Script pilot — MASAJIDALLOH PRO
 
-**Status:** development preparation only; **NOT** deployed, not a functioning Cloudflare app.
+**Status:** vinext static compatibility preflight completed on 2026-10-23, but **NOT** deployed; no Cloudflare runtime smoke test yet.
+
+### Recorded preflight result — GitHub Actions run 39897458696
+- `npx --yes vinext check`: **96% compatible (13 supported, 1 partial, 0 issues)**.
+- Next.js imports **7/7 fully supported**; Prisma library recognized as adapter-compatible, NOT proof that current native Prisma engine works on Workers.
+- `reactStrictMode` configuration is partially supported (App Router behavior differs).
+- Scan did not test live Cloudflare build, Supabase access, login cookies, native Prisma binaries, tenant boundaries, or load.
+- Evidence: https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39897458696
+
 
 ## Goals and non-negotiable rules
 
