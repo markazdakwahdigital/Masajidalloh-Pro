@@ -65,3 +65,11 @@ Official guide: https://developers.cloudflare.com/workers/framework-guides/web-a
 - Consequently **the Vite build did not run**; the 96% static scan is not a successful build or Cloudflare deployment.
 - Next test must upgrade React and matching dependencies *only on a migration test branch*, reconcile lockfile, run existing unit/Next.js checks, then attempt `vite build`. Do not use `--force` or `--legacy-peer-deps` to mask incompatibilities.
 - Cloudflare dashboard is not accessible via an installed connector in this chat; the owner must authorize a browser-controlled Work session or an approved hosting integration before remote deployment can be performed.
+
+### Updated build result — 2026-10-23, GitHub Actions run 39986800102
+- The migration branch now uses `react@19.3.1` and `react-dom@19.3.1` in `package.json`, plus ESM mode (`"type": "module"`) so the vinext Vite config can load.
+- `npm install --no-save vinext vite @vitejs/plugin-react @vitejs/plugin-rsc react-server-dom-webpack` succeeded without forcing peer-dependency resolution.
+- **`npx vite build` succeeded** on GitHub Actions (the workflow now fails on build errors). This is a production bundle created in CI, **not** a Cloudflare deployment or runtime smoke test.
+- GitHub evidence: https://github.com/markazdakwahdigital/Masajidalloh-Pro/actions/runs/39986800102
+- Remaining blockers: validate the exact Workers build output, select and implement a Cloudflare-compatible Prisma/Postgres adapter, secret management, runtime login/logout, PWA, tenant isolation, and Cloudflare Free quota behavior. No credentials or Cloudflare Worker were provisioned.
+- React and ESM changes are isolated on `feature/cloudflare-gas-pilot`; legacy Netlify runtime is unchanged.
