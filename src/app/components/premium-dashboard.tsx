@@ -3,10 +3,10 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import ControlToolbar from './control-toolbar';
 import EnterpriseNavigation from './enterprise-navigation';
+import SidebarDrawer from './sidebar-drawer';
 
 export function DashboardFrame({children,mosqueName,overview=false,actions,profileName,profileRole,searchItems=[]}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode;profileName?:string;profileRole?:string;searchItems?:Array<{label:string;href:string}>}){
- return <div className="premium-app brochure-app" id="dashboard">
-   <aside className="premium-sidebar">
+ return <SidebarDrawer sidebar={<>
     <Link href="/" className="side-brand">
       <Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO — Professional Mosque Management Platform — Masjid Makmur, Adaptif dan Berdaya" width={210} height={205} className="brand-mark-large" unoptimized />
     </Link>
@@ -14,14 +14,14 @@ export function DashboardFrame({children,mosqueName,overview=false,actions,profi
     <div className="side-caption">MANAJEMEN MASJID</div>
     <EnterpriseNavigation />
     <div className="side-foot"><span>✦</span> Masjid Makmur, Adaptif dan Berdaya <small>Developed by MARKAZ DAKWAH DIGITAL</small></div>
-   </aside>
+   </>}>
    <div className="premium-main">
     <ControlToolbar mosqueName={mosqueName} profileName={profileName} profileRole={profileRole} searchItems={searchItems} backHref={!overview?'/dashboard':undefined} />
     {actions&&<div className="mdd-top-actions">{actions}</div>}
     <main className="premium-content">{children}</main>
     <footer className="premium-footer">MASAJIDALLOH PRO · Professional Mosque Management Platform · Developed by MARKAZ DAKWAH DIGITAL</footer>
    </div>
-  </div>;
+  </SidebarDrawer>;
 }
 export function Panel({icon,title,sub,children,id}:{icon:string,title:string,sub?:string,children:ReactNode,id?:string}){
  return <section className="premium-panel" id={id}><div className="panel-heading"><span className="panel-icon">{icon}</span><div><h2>{title}</h2>{sub&&<p>{sub}</p>}</div></div>{children}</section>;
