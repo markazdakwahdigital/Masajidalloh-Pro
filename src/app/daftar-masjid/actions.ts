@@ -22,7 +22,14 @@ export async function applyTenant(f:FormData) {
   }catch(err){
     // Next.js redirects are exceptions. Do not disguise any intentional redirect as an error.
     if(err&&typeof err==='object'&&'digest' in err&&String(err.digest).startsWith('NEXT_REDIRECT'))throw err;
-    console.error('tenant_application_failed', {code:err&&typeof err==='object'&&'code' in err?String(err.code):'unknown',type:err instanceof Error?err.name:'unknown'});
+    let detail=err instanceof Error?err.message:'unknown';
+    const connection=process.env.DATABASE_URL;
+    if(connection){
+      detail=detail.split(connection).join('[database]');
+      try{const password=new URL(connection).password;if(password){detail=detail.split(password).join('[redacted]').split(decodeURIComponent(password)).join('[redacted]');}}catch{/* Never log configuration. */}
+    }
+    detail=detail.replace(/postgres(?:ql)?:\/\/\S+/gi,'[database]');
+    console.error('tenant_application_failed', {code:err&&typeof err==='object'&&'code' in err?String(err.code):'unknown',detail});
     redirect('/daftar-masjid?status=unavailable');
   }
   redirect('/daftar-masjid?status=received');
