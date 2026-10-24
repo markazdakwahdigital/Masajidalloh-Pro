@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, readdirSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 const root = resolve('.cloudflare/output/v0/workers/default');
 const config = JSON.parse(readFileSync(resolve(root, 'worker.config.json'), 'utf8'));
@@ -8,3 +8,7 @@ const main = resolve(root, 'bundle', config.manifest.mainModule);
 assert.ok(main.startsWith(root + sep), 'Worker entrypoint escapes output directory');
 assert.ok(statSync(main).size > 4096, 'Worker entry module is missing or unexpectedly small');
 console.log(`PASS Worker manifest references a server module (${statSync(main).size} bytes)`);
+
+const modules = readdirSync(resolve(root, 'bundle'), {recursive:true});
+assert.ok(modules.some(file => /query_compiler_bg.*\.wasm$/.test(String(file))), 'Prisma query compiler WASM must be bundled for Workers');
+console.log('PASS Prisma query compiler WASM is included');
