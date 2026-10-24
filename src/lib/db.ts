@@ -1,6 +1,7 @@
 import 'server-only';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { normalizeDatabaseUrl } from './database-url';
 
 /**
  * Rust-free Prisma Client works with node-postgres on Cloudflare Workers
@@ -10,7 +11,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = normalizeDatabaseUrl(process.env.DATABASE_URL ?? '');
   if (!connectionString) {
     throw new Error('Database connection is not configured');
   }
