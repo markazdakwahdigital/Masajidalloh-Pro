@@ -29,7 +29,7 @@ export async function applyTenant(f:FormData) {
       try{const password=new URL(connection).password;if(password){detail=detail.split(password).join('[redacted]').split(decodeURIComponent(password)).join('[redacted]');}}catch{/* Never log configuration. */}
     }
     detail=detail.replace(/postgres(?:ql)?:\/\/\S+/gi,'[database]');
-    console.error('tenant_application_failed', {code:err&&typeof err==='object'&&'code' in err?String(err.code):'unknown',detail});
+    console.error('tenant_application_failed', {code:err&&typeof err==='object'&&'code' in err?String(err.code):'unknown',detail, target:(()=>{try{const u=new URL(process.env.DATABASE_URL??'');return {host:u.hostname,port:u.port,masked:u.password.includes('*'),hasPassword:!!u.password};}catch{return {invalid:true,masked:(process.env.DATABASE_URL??'').includes('****')};}})()});
     redirect('/daftar-masjid?status=unavailable');
   }
   redirect('/daftar-masjid?status=received');
