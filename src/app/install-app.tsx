@@ -27,7 +27,7 @@ export default function InstallApp() {
   return <aside className="pwa-install">
     <div>
       <strong>Pasang MASAJIDALLOH PRO</strong>
-      <p>Buka lebih mudah dari ikon di layar perangkat Anda. Data masjid tetap memerlukan koneksi internet.</p>
+      <p>Buka lebih mudah dari ikon di layar perangkat Anda. Data Masjid tetap memerlukan koneksi internet.</p>
     </div>
     {event ? <button type="button" onClick={async () => { await event.prompt(); await event.userChoice; setEvent(null); }}>Instal aplikasi</button> :
       <button type="button" onClick={() => setGuide(x => !x)} aria-expanded={guide}>Cara memasang</button>}

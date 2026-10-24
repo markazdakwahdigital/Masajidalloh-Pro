@@ -11,7 +11,7 @@ export async function updateMosqueProfile(mosqueId: string, formData: FormData) 
   if (!context.permissions.has('mosque.manage')) throw new AuthorizationError();
   const name = formData.get('name');
   if (typeof name !== 'string' || name.trim().length < 3 || name.trim().length > 120) {
-    return {ok:false,message:'Nama masjid harus terdiri dari 3–120 karakter.'};
+    return {ok:false,message:'Nama Masjid harus terdiri dari 3–120 karakter.'};
   }
   const cleaned = name.trim();
   await prisma.$transaction(async tx => {
@@ -35,5 +35,5 @@ export async function updateMosqueProfile(mosqueId: string, formData: FormData) 
   });
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/masjid/'+mosqueId);
-  return {ok:true,message:'Profil masjid berhasil diperbarui.'};
+  return {ok:true,message:'Profil Masjid berhasil diperbarui.'};
 }

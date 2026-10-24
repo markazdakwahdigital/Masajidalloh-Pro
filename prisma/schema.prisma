@@ -26,6 +26,8 @@ model Mosque {
   memberships MosqueMembership[]
   auditLogs   AuditLog[]
   programs    MosqueProgram[]
+  workspaceSettings MosqueSettings?
+  workspaceRecords MosqueRecord[]
 }
 model User {
   id          String @id @default(uuid()) @db.Uuid
@@ -37,6 +39,7 @@ model User {
   memberships MosqueMembership[]
   auditLogs   AuditLog[]
   authoredPrograms MosqueProgram[]
+  workspaceRecords MosqueRecord[]
 }
 model MosqueMembership {
   id        String @id @default(uuid()) @db.Uuid
@@ -116,4 +119,26 @@ model TenantApplication {
   submittedAt DateTime  @default(now())
   reviewedAt  DateTime?
   @@index([email, submittedAt])
+}
+
+
+model MosqueSettings {
+  mosqueId String @id @db.Uuid
+  plan String @default("BASIC")
+  data Json @default("{}")
+  updatedAt DateTime @updatedAt
+  mosque Mosque @relation(fields:[mosqueId], references:[id], onDelete:Restrict)
+}
+
+model MosqueRecord {
+  id String @id @default(uuid()) @db.Uuid
+  mosqueId String @db.Uuid
+  actorId String @db.Uuid
+  kind String
+  data Json
+  createdAt DateTime @default(now())
+  mosque Mosque @relation(fields:[mosqueId], references:[id], onDelete:Restrict)
+  actor User @relation(fields:[actorId], references:[id], onDelete:Restrict)
+  @@index([mosqueId, kind, createdAt])
+  @@index([actorId])
 }

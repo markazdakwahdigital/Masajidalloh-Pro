@@ -22,7 +22,7 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
         <button type="submit">Masuk dengan aman</button>
       </form>
       <Link href="/forgot-password">Lupa kata sandi?</Link>
-      <p className="helper">Akun tenant diaktifkan setelah verifikasi administrator. Belum memiliki akun masjid? <Link href="/paket">Lihat paket dan ajukan pendaftaran.</Link></p>
+      <p className="helper">Akun tenant diaktifkan setelah verifikasi administrator. Belum memiliki akun Masjid? <Link href="/paket">Lihat paket dan ajukan pendaftaran.</Link></p>
       <Link href="/">Kembali ke halaman utama</Link>
     </section>
   </main>;

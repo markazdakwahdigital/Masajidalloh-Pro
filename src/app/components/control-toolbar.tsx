@@ -60,7 +60,7 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
    <div className="mdd-compact-brand"><Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO" width={40} height={40} unoptimized/><span>MASAJIDALLOH <b>PRO</b></span></div>
    <div className="mdd-search">
     <span aria-hidden="true">⌕</span><label className="sr-only" htmlFor="mdd-search-input">Cari menu dan kegiatan</label>
-    <input id="mdd-search-input" placeholder={mosqueName?'Cari jamaah, donasi, program, laporan...':'Cari menu, masjid, kegiatan...'} value={q} onChange={e=>setQ(e.target.value)}/>
+    <input id="mdd-search-input" placeholder={mosqueName?'Cari jamaah, donasi, program, laporan...':'Cari menu, Masjid, kegiatan...'} value={q} onChange={e=>setQ(e.target.value)}/>
     {q&&<button type="button" className="mdd-x" aria-label="Bersihkan pencarian" onClick={()=>setQ('')}>×</button>}
     {q&&<div className="mdd-search-results" role="status">
       {results.length?results.map((x,i)=><Link onClick={()=>setQ('')} key={i} href={x.href}>{x.label} <span>↗</span></Link>):<p>Tidak ada menu atau kegiatan yang cocok.</p>}
@@ -71,12 +71,12 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
      <div><strong>{dates?.greg||'Memuat tanggal...'}</strong><small>{dates?.hijri||'Kalender Hijriah'} · {dates?.time||'--:--'}</small></div>
    </div>
    <div className="mdd-prayer-widget">
-     <button className="mdd-prayer-toggle" type="button" aria-expanded={showSalat} onClick={()=>setShowSalat(!showSalat)}><span className="mdd-gold-icon">☪</span><span><strong>Waktu Salat</strong><small>{city?city+' · '+(timings?'Jadwal hari ini':'Memuat...'):'Pilih kota masjid'}</small></span><span aria-hidden="true">⌄</span></button>
+     <button className="mdd-prayer-toggle" type="button" aria-expanded={showSalat} onClick={()=>setShowSalat(!showSalat)}><span className="mdd-gold-icon">☪</span><span><strong>Waktu Salat</strong><small>{city?city+' · '+(timings?'Jadwal hari ini':'Memuat...'):'Pilih kota Masjid'}</small></span><span aria-hidden="true">⌄</span></button>
      {showSalat&&<div className="mdd-popup mdd-prayer-popup">
        <label htmlFor="mdd-prayer-city">Lokasi untuk jadwal salat</label>
        <select id="mdd-prayer-city" value={city} onChange={e=>{setCity(e.target.value);try{window.localStorage.setItem('mdd-mosque-prayer-city',e.target.value);}catch{/* Storage disabled */}}}><option value="">Pilih kota...</option>{CITY_OPTIONS.map(c=><option key={c.name}>{c.name}</option>)}</select>
-       {timings?<div className="prayer-time-list">{SALAT.map(([name,key])=><div key={key}><span>{name}</span><strong>{timings[key]||'—'}</strong></div>)}</div>:<p className="prayer-hint">{error||'Pilih lokasi masjid agar jadwal ditampilkan. Jam dihitung menurut kota yang dipilih.'}</p>}
-       <small className="prayer-credit">Sumber: AlAdhan, metode Kemenag (20). Periksa dengan jadwal resmi masjid setempat.</small>
+       {timings?<div className="prayer-time-list">{SALAT.map(([name,key])=><div key={key}><span>{name}</span><strong>{timings[key]||'—'}</strong></div>)}</div>:<p className="prayer-hint">{error||'Pilih lokasi Masjid agar jadwal ditampilkan. Jam dihitung menurut kota yang dipilih.'}</p>}
+       <small className="prayer-credit">Sumber: AlAdhan, metode Kemenag (20). Periksa dengan jadwal resmi Masjid setempat.</small>
      </div>}
    </div>
    <div className="mdd-profile">
@@ -84,7 +84,7 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
        <span className="mdd-avatar" aria-label="Avatar inisial; foto profil belum tersedia">{initial}</span>
        <span className="mdd-profile-copy"><strong>{profileName||'Belum ditetapkan'}</strong><small>{profileRole||'Ketua DKM · belum ditetapkan'}</small></span><span aria-hidden="true">⌄</span>
      </button>
-     {openProfile&&<div className="mdd-popup mdd-profile-popup"><strong>{profileName||'Ketua DKM belum ditetapkan'}</strong><p>{profileRole||'Identitas dan foto Ketua DKM belum tersedia dalam profil masjid.'}</p><p>Foto profil akan ditampilkan setelah fitur unggah foto pengurus tersedia.</p>{backHref&&<Link href={backHref}>← Daftar masjid</Link>}{logout&&<Link href="/dashboard">Dashboard saya</Link>}</div>}
+     {openProfile&&<div className="mdd-popup mdd-profile-popup"><strong>{profileName||'Ketua DKM belum ditetapkan'}</strong><p>{profileRole||'Identitas dan foto Ketua DKM belum tersedia dalam profil Masjid.'}</p><p>Foto profil akan ditampilkan setelah fitur unggah foto pengurus tersedia.</p>{backHref&&<Link href={backHref}>← Daftar Masjid</Link>}{logout&&<Link href="/dashboard">Dashboard saya</Link>}</div>}
    </div>
   </header>;
 }

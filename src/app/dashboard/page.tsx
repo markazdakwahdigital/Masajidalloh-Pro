@@ -34,10 +34,10 @@ export default async function Dashboard() {
   } catch { configured = false; }
   return <DashboardFrame overview profileName={profileName} profileRole="Pengurus Masjid" searchItems={[{label:'Dashboard Pengurus',href:'/dashboard'},...mosques.map(m=>({label:m.name,href:'/dashboard/masjid/'+m.id}))]} actions={<form action={logout}><button className="topbar-logout" type="submit">↪ Keluar</button></form>}>
    <BrochureOverview/>
-   <Panel id="profil" icon="🕌" title="DAFTAR MASJID" sub="Pilih masjid untuk membuka profil, program, dan kegiatan operasional.">
+   <Panel id="profil" icon="🕌" title="DAFTAR MASJID" sub="Pilih Masjid untuk membuka profil, program, dan kegiatan operasional.">
      {!configured ? <p role="status" className="info-note">Layanan data pengurus belum dapat diakses. Hubungi administrator sistem.</p> :
-       mosques.length===0 ? <p role="status" className="info-note">Akun terverifikasi, namun belum mempunyai keanggotaan masjid aktif. Hubungi administrator.</p> :
-       <div className="mosque-tiles">{mosques.map(m=><Link href={'/dashboard/masjid/'+m.id} className="mosque-tile" key={m.id}><span className="mosque-tile-icon">🕌</span><div><strong>{m.name}</strong><small>Profil dan program masjid</small></div><span className="tile-arrow">→</span></Link>)}</div>}
+       mosques.length===0 ? <p role="status" className="info-note">Akun terverifikasi, namun belum mempunyai keanggotaan Masjid aktif. Hubungi administrator.</p> :
+       <div className="mosque-tiles">{mosques.map(m=><Link href={'/dashboard/masjid/'+m.id} className="mosque-tile" key={m.id}><span className="mosque-tile-icon">🕌</span><div><strong>{m.name}</strong><small>Profil dan program Masjid</small></div><span className="tile-arrow">→</span></Link>)}</div>}
    </Panel>
    <Panel id="kegiatan" icon="📊" title="MODUL PENGEMBANGAN" sub="Rencana integrasi dalam satu platform; belum menampilkan data keuangan atau jamaah.">
       <div className="pending-module-grid">{[['💰','Baitul Maal'],['🤲','ZISWAF'],['👥','Jamaah'],['🏗️','Aset'],['📚','Tarbiyah'],['🤝','Muamalah']].map(([icon,name])=><div key={name} className="pending-module"><span>{icon}</span><strong>{name}</strong><small>Segera hadir</small></div>)}</div>

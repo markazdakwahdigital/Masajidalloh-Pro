@@ -1,6 +1,6 @@
 export const ENTERPRISE_MENU = [
   {id:'dashboard',label:'Dashboard Utama',icon:0},
-  {id:'profil',label:'Data Masjid',icon:1},
+  {id:'profil',label:'Profile Masjid',icon:1},
   {id:'jamaah',label:'Jamaah',icon:2},
   {id:'donasi',label:'Donasi',icon:3},
   {id:'infaq',label:'Infaq & Shodaqoh',icon:3},
@@ -10,7 +10,7 @@ export const ENTERPRISE_MENU = [
   {id:'kegiatan',label:'Program & Kegiatan',icon:7},
   {id:'shalat',label:'Jadwal Sholat',icon:8},
   {id:'inventaris',label:'Inventaris',icon:9},
-  {id:'petugas',label:'Petugas & Relawan',icon:10},
+  {id:'petugas',label:'Donatur & Relawan',icon:10},
   {id:'umkm',label:'UMKM Masjid',icon:11},
   {id:'broadcast',label:'Broadcast & Pengumuman',icon:12},
   {id:'laporan',label:'Laporan',icon:13},
