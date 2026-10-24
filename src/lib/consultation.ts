@@ -1,0 +1,1 @@
+export const CONSULTATION_URL='https://wa.me/62895701716700?text=Bismillahirrohmaanirrohiim%0AAssalamu%27alaykum%20Warohmatulloh%20Wabarokatuh.%0AAfwan%2C%20aku%20ingin%20konsultasi%20tentang%20aplikasi%20smart%20dashboard%20%22MASAJIDALLOH%20PRO%22.%0A%0AJazakalloh%20khoyr';

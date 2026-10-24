@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import {CONSULTATION_URL} from '@/lib/consultation';
 import {TENANT_PLANS} from '@/lib/tenant-plans';
 export const metadata={title:'Paket Layanan | MASAJIDALLOH PRO',description:'Paket Basic 99K, Professional 199K, dan Enterprise 249K per bulan untuk pengelolaan Masjid.'};
 export default function PricingPage(){
@@ -9,10 +10,10 @@ export default function PricingPage(){
  <section className="plan-grid">{TENANT_PLANS.map(p=><article className={'plan-card '+(p.id==='BASIC'?'plan-featured':'')} key={p.id}>
   <div className="plan-emblem">{p.id==='BASIC'?'🕌':p.id==='PRO'?'✨':'🏛️'}</div><h2>{p.name.toUpperCase()}</h2><div className="plan-cost">{p.price}</div><p className="plan-period">{p.period}</p><p>{p.description}</p><div className="plan-divider"/>
   {p.intro&&<p><strong>{p.intro}</strong></p>}<ul>{p.benefits.map(b=><li key={b}>✓ {b}</li>)}</ul>
-  {p.id==='ENTERPRISE'&&<Link className="enterprise-preview-link" href="/enterprise">Lihat tampilan & menu Enterprise →</Link>}
+  <Link className="enterprise-preview-link prototype-button" href={p.id==='BASIC'?'/basic':p.id==='PRO'?'/professional':'/enterprise'} target="_blank" rel="noopener noreferrer">Prototype Aplikasi ↗</Link>
   <Link className="plan-button" href={'/daftar-masjid?paket='+p.id}>Pilih {p.name}</Link>
  </article>)}</section>
- <p style={{textAlign:'center'}}><Link className="plan-button" href="/daftar-masjid">Daftarkan Masjid →</Link></p>
+ <p style={{textAlign:'center'}}><a className="plan-button" href={CONSULTATION_URL} target="_blank" rel="noopener noreferrer">Konsultasi Gratis ↗</a></p>
  <p className="tenant-disclaimer">Harga berlangganan per bulan. Pengajuan pendaftaran ditinjau sebelum akun dan paket diaktifkan. Tidak ada checkout atau penagihan otomatis melalui halaman ini.</p>
  <footer>Developed by MARKAZ DAKWAH DIGITAL</footer>
  </main>;
