@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { login } from './actions';
+import { PasswordInput } from '@/components/password-input';
 export const dynamic = 'force-dynamic';
 export default async function Login({searchParams}:{searchParams:Promise<{error?:string}>}) {
   const {error} = await searchParams;
@@ -17,9 +18,10 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
         <label htmlFor="email">Email terdaftar</label>
         <input id="email" name="email" type="email" autoComplete="username" maxLength={254} required/>
         <label htmlFor="password">Kata sandi</label>
-        <input id="password" name="password" type="password" autoComplete="current-password" required/>
+        <PasswordInput id="password" name="password" autoComplete="current-password" required/>
         <button type="submit">Masuk dengan aman</button>
       </form>
+      <Link href="/forgot-password">Lupa kata sandi?</Link>
       <p className="helper">Akun tenant diaktifkan setelah verifikasi administrator. Belum memiliki akun masjid? <Link href="/paket">Lihat paket dan ajukan pendaftaran.</Link></p>
       <Link href="/">Kembali ke halaman utama</Link>
     </section>

@@ -7,7 +7,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 /** Handles a Supabase invitation/recovery link ONLY on the configured live origin. */
 export default function FinishAuth() {
   const router=useRouter();
-  const [message,setMessage]=useState('Memverifikasi undangan Anda…');
+  const [message,setMessage]=useState('Memverifikasi tautan akun Anda…');
   useEffect(()=>{
     let cancelled=false;
     async function complete(){
@@ -34,11 +34,11 @@ export default function FinishAuth() {
         if(!cancelled) router.replace('/setup-password');
       } catch {
         window.history.replaceState(null,'',window.location.pathname);
-        if(!cancelled) setMessage('Tautan tidak valid, telah digunakan, atau kedaluwarsa. Mintalah tautan pemulihan baru setelah URL aplikasi dikonfigurasi.');
+        if(!cancelled) setMessage('Tautan tidak valid, telah digunakan, atau kedaluwarsa. Silakan minta tautan pemulihan baru.');
       }
     }
     void complete();
     return ()=>{cancelled=true;};
   },[router]);
-  return <main className="auth-page"><section className="auth-card"><h1>Aktivasi akun pengurus</h1><p role="status">{message}</p><Link href="/login">Kembali ke login</Link></section></main>;
+  return <main className="auth-page"><section className="auth-card"><h1>Verifikasi akun pengurus</h1><p role="status">{message}</p><Link href="/forgot-password">Minta tautan pemulihan baru</Link><p><Link href="/login">Kembali ke login</Link></p></section></main>;
 }
