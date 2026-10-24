@@ -15,7 +15,7 @@ function ModuleForm({kind,settings}:{kind:string;settings:WorkspaceSettings}){
   fields.forEach(f=>{data[f.key]=f.type==='checkbox'?raw.has(f.key):String(raw.get(f.key)||'');});
   if(kind==='laporan'){
    if(String(data.from)>String(data.to)){setMessage('Tanggal akhir harus sesudah tanggal awal.');return;}
-   const typeMap:Record<string,string>={Keuangan:'keuangan',Donasi:'donasi','Infaq & Shodaqoh':'infaq',Zakat:'zakat',Wakaf:'wakaf',Jamaah:'jamaah',Inventaris:'inventaris',Kegiatan:'kegiatan'};
+   const typeMap:Record<string,string>={Keuangan:'keuangan',Donasi:'donasi','Infaq & Shodaqoh':'infaq',Zakat:'zakat',Wakaf:'wakaf',Jamaah:'jamaah',Inventaris:'inventaris',Kegiatan:'kegiatan','Penerima Manfaat':'penerima'};
    const rows=records.filter(row=>hasModule(plan,row.kind)&&row.kind===typeMap[String(data.type)]&&String(row.data.date||row.createdAt.slice(0,10))>=String(data.from)&&String(row.data.date||row.createdAt.slice(0,10))<=String(data.to));
    if(!rows.length){setMessage('Belum ada data sesuai jenis laporan dan periode ini.');return;}
    const columns=MODULE_FIELDS[typeMap[String(data.type)]];
@@ -49,7 +49,7 @@ export default function EnterpriseModules({preview:legacyPreview=false}:{preview
  <div className="brochure-panel-heading"><span className="gold-tile"><MenuIcon index={menu.icon}/></span><h2>{menu.label}</h2><span className="brochure-period">{plan}</span></div>
  {preview&&<p className="brochure-note">Data pratinjau sementara. Tidak tersimpan ke akun Masjid dan akan hilang ketika halaman dimuat ulang.</p>}
  {active==='keuangan'&&<p className="brochure-note">Catat pemasukan lain dan pengeluaran. Donasi, Infaq uang, Zakat, serta Wakaf uang dihitung dari menu asalnya; jangan dicatat ulang di sini.</p>}
- {active==='infaq'&&<p className="brochure-note">Barang, Makanan, dan Lainnya dicatat sebagai penerimaan non-uang; tidak menambah saldo kas.</p>}
+ {active==='infaq'&&<p className="brochure-note">Barang, Makanan, Minuman, dan Lainnya dicatat sebagai penerimaan non-uang; tidak menambah saldo kas.</p>}
  <ModuleForm key={active} kind={active} settings={settings}/>
  {!['setting','profil','laporan'].includes(active)&&<div className="brochure-table-wrap"><table className="brochure-table"><caption>Daftar {menu.label}</caption><thead><tr>{columns.map(column=><th scope="col" key={column.key}>{column.label}</th>)}</tr></thead><tbody>{rows.length?rows.map(row=><tr key={row.id}>{columns.map(column=><td key={column.key}>{typeof row.data[column.key]==='boolean'?(row.data[column.key]?'Ya':'Tidak'):String(row.data[column.key]||'—')}</td>)}</tr>):<tr><td colSpan={columns.length}>Belum ada data {menu.label}.</td></tr>}</tbody></table></div>}
  </section>;

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public."MosqueRecord" (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  "mosqueId" uuid NOT NULL REFERENCES public."Mosque"(id) ON DELETE RESTRICT,
  "actorId" uuid NOT NULL REFERENCES public."User"(id) ON DELETE RESTRICT,
- kind text NOT NULL CHECK (kind IN ('jamaah','donasi','infaq','zakat','wakaf','keuangan','kegiatan','shalat','inventaris','petugas','umkm','broadcast')),
+ kind text NOT NULL CHECK (kind IN ('jamaah','donasi','infaq','zakat','wakaf','keuangan','kegiatan','shalat','inventaris','petugas','penerima','umkm','broadcast')),
  data jsonb NOT NULL CHECK (jsonb_typeof(data)='object' AND octet_length(data::text)<=16000),
  "createdAt" timestamptz NOT NULL DEFAULT now()
 );

@@ -21,6 +21,7 @@ export function MenuIcon({index}:{index:number}) {
     'M3 9v6h5l10 5V4L8 9ZM8 15l2 7h4l-3-6M21 8v8',
     'M5 2h10l5 5v15H5ZM15 2v6h5M8 12h9M8 16h9M8 19h6',
     'm10 2 4 0 1 4 3 1 3-1 2 4-3 3 0 2 3 3-2 4-4-1-2 1-1 3h-4l-1-3-3-1-3 1-2-4 3-3v-2l-3-3 2-4 4 1 2-1ZM12 9a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
+    'M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 21v-5a5 5 0 0 1 10 0v5M18 12l-4-4a2 2 0 0 1 4-3 2 2 0 0 1 4 3ZM15 17h7M18.5 14v6',
   ];
   return <span className="brochure-menu-icon" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><g transform="translate(2 1) scale(.9)"><path d={paths[index]||paths[0]}/></g></svg></span>;
 }

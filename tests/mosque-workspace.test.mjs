@@ -22,3 +22,18 @@ test('server validation ignores submitted plan and unknown fields',()=>{
  const result=validateModule('setting',{name:'Masjid Uji',timezone:'Asia/Jakarta',website:'https://example.org',plan:'ENTERPRISE',servicePhone:'081234567890'});
  assert.equal(result.data.plan,undefined);assert.equal(result.data.servicePhone,'081234567890');
 });
+
+test('Minuman is non-cash and daily Infaq excludes other dates',()=>{
+ const data={receipt:'Shodaqoh',form:'Minuman',date:'2026-10-24',source:'Lainnya',item:'Air mineral',quantity:'24',unit:'Botol'};
+ assert.equal(validateModule('infaq',data).data.form,'Minuman');
+ const summary=summarize([row('infaq',data),row('infaq',{form:'Uang',amount:'25000',date:'2026-10-24'}),row('infaq',{form:'Uang',amount:'50000',date:'2026-10-23'})],'ENTERPRISE','2026-10-24');
+ assert.equal(summary.infaqToday,25000);assert.equal(summary.infaqNonCashToday,1);assert.equal(summary.balance,75000);
+});
+test('beneficiary database validates categories and counts active people within package',()=>{
+ const data={name:'Penerima Uji',category:'Fakir',address:'Alamat uji',assistance:'Donasi',needs:'Sembako',active:true};
+ assert.equal(validateModule('penerima',data).data.category,'Fakir');
+ assert.ok(validateModule('penerima',{...data,category:'Tidak dikenal'}).error);
+ const rows=[row('penerima',data),row('penerima',{...data,active:false})];
+ assert.equal(summarize(rows,'ENTERPRISE','2026-10-24').beneficiaries,1);
+ assert.equal(summarize(rows,'BASIC','2026-10-24').beneficiaries,0);
+});
