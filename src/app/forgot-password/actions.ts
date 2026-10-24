@@ -8,12 +8,14 @@ export async function requestPasswordReset(formData: FormData) {
     redirect('/forgot-password?error=invalid');
   }
   let failed = false;
+  let rateLimited = false;
   try {
     const client = await createSupabaseServerClient();
     const { error } = await client.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: 'https://masajidalloh-pro.markazdakwahdigital-01.workers.dev/auth/finish',
     });
     failed = !!error;
+    rateLimited = error?.status === 429;
   } catch { failed = true; }
-  redirect(failed ? '/forgot-password?error=failed' : '/forgot-password?sent=1');
+  redirect(rateLimited ? '/forgot-password?error=rate-limit' : failed ? '/forgot-password?error=failed' : '/forgot-password?sent=1');
 }

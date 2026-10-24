@@ -17,19 +17,10 @@ export default function FinishAuth() {
         const query=new URLSearchParams(window.location.search);
         const error=fragment.get('error')??query.get('error');
         if(error) throw new Error('link');
-        const code=query.get('code');
-        const access=fragment.get('access_token');
-        const refresh=fragment.get('refresh_token');
-        if(code){
-          const {error:err}=await client.auth.exchangeCodeForSession(code);
-          if(err) throw err;
-        } else if(access&&refresh){
-          const {error:err}=await client.auth.setSession({access_token:access,refresh_token:refresh});
-          if(err) throw err;
-        } else {
-          const {data:{user},error:err}=await client.auth.getUser();
-          if(err||!user) throw new Error('missing');
-        }
+        // createBrowserClient automatically consumes the callback URL during
+        // initialization. A second exchange consumes the same one-time code twice.
+        const {data:{user},error:err}=await client.auth.getUser();
+        if(err||!user) throw new Error('missing');
         window.history.replaceState(null,'',window.location.pathname);
         if(!cancelled) router.replace('/setup-password');
       } catch {

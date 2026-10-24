@@ -22,6 +22,7 @@ export async function applyTenant(f:FormData) {
   }catch(err){
     // Next.js redirects are exceptions. Do not disguise any intentional redirect as an error.
     if(err&&typeof err==='object'&&'digest' in err&&String(err.digest).startsWith('NEXT_REDIRECT'))throw err;
+    console.error('tenant_application_failed', {code:err&&typeof err==='object'&&'code' in err?String(err.code):'unknown',type:err instanceof Error?err.name:'unknown'});
     redirect('/daftar-masjid?status=unavailable');
   }
   redirect('/daftar-masjid?status=received');
