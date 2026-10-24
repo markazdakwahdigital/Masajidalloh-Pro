@@ -21,8 +21,10 @@ export default function FinishAuth() {
         // initialization. A second exchange consumes the same one-time code twice.
         const {data:{user},error:err}=await client.auth.getUser();
         if(err||!user) throw new Error('missing');
+        const next=query.get('next');
+        const target=next==='/dashboard'?'/dashboard':'/setup-password';
         window.history.replaceState(null,'',window.location.pathname);
-        if(!cancelled) router.replace('/setup-password');
+        if(!cancelled) router.replace(target);
       } catch {
         window.history.replaceState(null,'',window.location.pathname);
         if(!cancelled) setMessage('Tautan tidak valid, telah digunakan, atau kedaluwarsa. Silakan minta tautan pemulihan baru.');

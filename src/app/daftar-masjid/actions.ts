@@ -1,37 +1,13 @@
 'use server';
 import {redirect} from 'next/navigation';
-import {prisma} from '@/lib/db';
+import {dataRpc} from '@/lib/server/data-api';
+import {requireCurrentActor} from '@/lib/server/current-actor';
 import {isPlan} from '@/lib/tenant-plans';
-import {headers} from 'next/headers';
-import {normalizeDatabaseUrl} from '@/lib/database-url';
 const value=(f:FormData,k:string)=>String(f.get(k)??'').trim();
-export async function applyTenant(f:FormData) {
-  if(value(f,'website')) redirect('/daftar-masjid?status=received');
-  const mosqueName=value(f,'mosqueName'),city=value(f,'city'),address=value(f,'address'),
-    contactName=value(f,'contactName'),email=value(f,'email').toLowerCase(),whatsapp=value(f,'whatsapp'),plan=value(f,'plan');
-  const valid=mosqueName.length>=3&&mosqueName.length<=160&&city.length>=3&&city.length<=100&&
-    address.length>=10&&address.length<=500&&contactName.length>=3&&contactName.length<=120&&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)&&email.length<=254&&
-    /^\+?[0-9\s()-]{9,22}$/.test(whatsapp)&&isPlan(plan);
-  if(!valid)redirect('/daftar-masjid?status=invalid');
-  const h=await headers();
-  if(h.get('origin')&&new URL(h.get('origin')!).host!==h.get('host'))redirect('/daftar-masjid?status=invalid');
-  try{
-    const recent=await prisma.tenantApplication.count({where:{email,submittedAt:{gte:new Date(Date.now()-24*60*60*1000)}}});
-    if(recent>=2)redirect('/daftar-masjid?status=received');
-    await prisma.tenantApplication.create({data:{mosqueName,city,address,contactName,email,whatsapp,plan,status:'PENDING'}});
-  }catch(err){
-    // Next.js redirects are exceptions. Do not disguise any intentional redirect as an error.
-    if(err&&typeof err==='object'&&'digest' in err&&String(err.digest).startsWith('NEXT_REDIRECT'))throw err;
-    let detail=err instanceof Error?err.message:'unknown';
-    const connection=process.env.DATABASE_URL;
-    if(connection){
-      detail=detail.split(connection).join('[database]');
-      try{const password=new URL(connection).password;if(password){detail=detail.split(password).join('[redacted]').split(decodeURIComponent(password)).join('[redacted]');}}catch{/* Never log configuration. */}
-    }
-    detail=detail.replace(/postgres(?:ql)?:\/\/\S+/gi,'[database]');
-    console.error('tenant_application_failed', {code:err&&typeof err==='object'&&'code' in err?String(err.code):'unknown',detail, target:(()=>{try{const u=new URL(normalizeDatabaseUrl(process.env.DATABASE_URL??''));return {host:u.hostname,port:u.port,masked:u.password.includes('*'),hasPassword:!!u.password};}catch{return {invalid:true,masked:(process.env.DATABASE_URL??'').includes('****'),quoted:/^[\"']/.test(process.env.DATABASE_URL??''),assignment:(process.env.DATABASE_URL??'').startsWith('DATABASE_URL=')};}})()});
-    redirect('/daftar-masjid?status=unavailable');
-  }
-  redirect('/daftar-masjid?status=received');
+export async function applyTenant(f:FormData){
+ await requireCurrentActor();if(value(f,'website'))redirect('/daftar-masjid?status=received');
+ const input=Object.fromEntries(['mosqueName','city','address','contactName','whatsapp','plan'].map(k=>[k,value(f,k)]));
+ if(!isPlan(input.plan))redirect('/daftar-masjid?status=invalid');
+ try{await dataRpc('mp_apply_tenant',{p_data:input});}catch(e){redirect('/daftar-masjid?status='+(e instanceof Error&&e.message==='application_rate_limit'?'limited':'unavailable'));}
+ redirect('/daftar-masjid?status=received');
 }

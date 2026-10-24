@@ -28,6 +28,9 @@ model Mosque {
   programs    MosqueProgram[]
   workspaceSettings MosqueSettings?
   workspaceRecords MosqueRecord[]
+  admin MosqueAdmin?
+  readerRequests MosqueReaderRequest[]
+  applications TenantApplication[]
 }
 model User {
   id          String @id @default(uuid()) @db.Uuid
@@ -40,6 +43,8 @@ model User {
   auditLogs   AuditLog[]
   authoredPrograms MosqueProgram[]
   workspaceRecords MosqueRecord[]
+  adminAppointments MosqueAdmin[]
+  readerRequests MosqueReaderRequest[]
 }
 model MosqueMembership {
   id        String @id @default(uuid()) @db.Uuid
@@ -118,6 +123,8 @@ model TenantApplication {
   status      String    @default("PENDING")
   submittedAt DateTime  @default(now())
   reviewedAt  DateTime?
+  mosqueId    String? @db.Uuid
+  mosque      Mosque? @relation(fields:[mosqueId],references:[id],onDelete:Restrict)
   @@index([email, submittedAt])
 }
 
@@ -135,10 +142,30 @@ model MosqueRecord {
   mosqueId String @db.Uuid
   actorId String @db.Uuid
   kind String
+  archivedAt DateTime? @db.Timestamptz(6)
   data Json
   createdAt DateTime @default(now())
   mosque Mosque @relation(fields:[mosqueId], references:[id], onDelete:Restrict)
   actor User @relation(fields:[actorId], references:[id], onDelete:Restrict)
   @@index([mosqueId, kind, createdAt])
   @@index([actorId])
+}
+
+model MosqueAdmin {
+ mosqueId String @id @db.Uuid
+ userId String @db.Uuid
+ assignedAt DateTime @default(now()) @db.Timestamptz(6)
+ mosque Mosque @relation(fields:[mosqueId],references:[id],onDelete:Restrict)
+ user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+}
+model MosqueReaderRequest {
+ id String @id @default(uuid()) @db.Uuid
+ mosqueId String @db.Uuid
+ userId String @db.Uuid
+ status String @default("PENDING")
+ createdAt DateTime @default(now()) @db.Timestamptz(6)
+ mosque Mosque @relation(fields:[mosqueId],references:[id],onDelete:Restrict)
+ user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+ @@unique([mosqueId,userId])
+ @@index([mosqueId,status],map:"MosqueReaderRequest_pending")
 }

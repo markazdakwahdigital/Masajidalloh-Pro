@@ -1,0 +1,9 @@
+import Link from 'next/link';
+import {PasswordInput} from '@/components/password-input';
+import {createAccount} from './actions';
+export default async function CreateAccount({searchParams}:{searchParams:Promise<{status?:string}>}){
+ const {status}=await searchParams;
+ return <main className="auth-page"><section className="auth-card"><h1>Buat Akun</h1><p>Untuk Admin Masjid, Pengurus, dan Jamaah. Akun baru belum memiliki akses ke data Masjid sampai keanggotaannya disetujui.</p>
+ {status&&<p role="status">{status==='sent'?'Periksa email Anda dan buka tautan verifikasi pada browser yang sama. Setelah terverifikasi, masuk untuk mendaftarkan Masjid atau mengajukan akses pembaca.':status==='invalid'?'Isi nama, email, dan kata sandi minimal 12 karakter dengan konfirmasi yang sama.':status==='smtp'?'Pengiriman email pendaftaran umum belum diaktifkan. Hubungi operator platform.':status==='limited'?'Batas pengiriman email verifikasi sedang tercapai. Coba lagi nanti.':'Akun belum berhasil dibuat. Coba masuk atau gunakan pemulihan kata sandi jika sudah terdaftar.'}</p>}
+ <form className="auth-form" action={createAccount}><label>Nama lengkap<input name="name" minLength={3} maxLength={120} required autoComplete="name"/></label><label>Email<input name="email" type="email" maxLength={254} required autoComplete="email"/></label><label htmlFor="new-password">Kata Sandi</label><PasswordInput id="new-password" name="password" minLength={12} maxLength={128} required autoComplete="new-password"/><label htmlFor="confirm-password">Konfirmasi Kata Sandi</label><PasswordInput id="confirm-password" name="confirm" minLength={12} maxLength={128} required autoComplete="new-password"/><button type="submit">Buat Akun & Verifikasi Email</button></form><p><Link href="/login">Sudah punya akun? Masuk</Link></p></section></main>;
+}

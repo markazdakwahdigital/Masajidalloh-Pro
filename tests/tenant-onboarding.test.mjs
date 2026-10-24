@@ -11,14 +11,12 @@ test('pricing uses requested monthly plans and keeps activation under review',()
  assert.match(marketing,/class="register-cta"/);
  assert.doesNotMatch(marketing,/Buka Aplikasi MASAJIDALLOH PRO/);
 });
-test('registration only inserts PENDING tenant applications with rate limit',()=>{
+test('registration requires verified identity and database-gated pending activation',()=>{
  const src=read('src/app/daftar-masjid/actions.ts');
- assert.match(src,/tenantApplication\.create/);
- assert.match(src,/status:'PENDING'/);
- assert.match(src,/recent>=2/);
- assert.match(src,/value\(f,'website'\)/);
+ assert.match(src,/requireCurrentActor/);assert.match(src,/mp_apply_tenant/);assert.match(src,/value\(f,'website'\)/);
+ const sql=read('supabase/multitenant-launch.sql');assert.match(sql,/application_rate_limit/);assert.match(sql,/email_confirmed_at IS NOT NULL/);
+ assert.match(sql,/operator_required/);assert.match(sql,/CREATE TABLE IF NOT EXISTS public."MosqueAdmin"/);
  assert.doesNotMatch(src,/auth\.signUp\(/);
- assert.doesNotMatch(src,/mosque\.create\(/);
 });
 test('landing and login provide entry to packages and registration',()=>{
  assert.match(read('src/app/page.tsx'),/href="\/paket"/);

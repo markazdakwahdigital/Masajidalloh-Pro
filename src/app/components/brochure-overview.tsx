@@ -8,7 +8,7 @@ function Heading({icon,title,children}:{icon:number;title:string;children?:React
  return <div className="brochure-panel-heading"><span className="gold-tile"><MenuIcon index={icon}/></span><h2>{title}</h2>{children}</div>;
 }
 function PrayerSchedule(){
- const {records,settings}=useWorkspace();
+ const {records,settings,canWrite}=useWorkspace();
  const configuredCity=String(records.find(row=>row.kind==='shalat')?.data.city||settings.city||'');
  const [city,setCity]=useState('');
  useEffect(()=>{if(configuredCity)setCity(configuredCity);},[configuredCity]);
@@ -23,7 +23,7 @@ function PrayerSchedule(){
    .catch(()=>{if(!controller.signal.aborted)setStatus('Jadwal belum tersedia. Silakan pilih kota lagi.');});
   return()=>controller.abort();
  },[city]);
- return <section className="brochure-panel" id="jadwal-hari-ini"><Heading icon={8} title="Jadwal Sholat Hari Ini"/><label className="sr-only" htmlFor="brochure-city">Kota jadwal sholat</label><select id="brochure-city" value={city} onChange={e=>setCity(e.target.value)}><option value="">Pilih kota Masjid</option>{['Jakarta','Bogor','Bandung','Semarang','Yogyakarta','Surabaya','Medan','Makassar','Denpasar','Balikpapan','Jayapura'].map(name=><option key={name}>{name}</option>)}</select><div className="brochure-prayers">{[['☀','Subuh','Fajr'],['☀','Dzuhur','Dhuhr'],['☁','Ashar','Asr'],['☀','Maghrib','Maghrib'],['☾','Isya','Isha']].map(([icon,name,key])=><div key={key}><span aria-hidden="true">{icon}</span><strong>{name}</strong><b>{times[key]||'—'}</b><small>{times[key]?'Jadwal hari ini':'Pilih kota'}</small></div>)}</div><p className="brochure-note" role="status">{status}</p></section>;
+ return <section className="brochure-panel" id="jadwal-hari-ini"><Heading icon={8} title="Jadwal Sholat Hari Ini"/>{canWrite&&<><label className="sr-only" htmlFor="brochure-city">Kota jadwal sholat</label><select id="brochure-city" value={city} onChange={e=>setCity(e.target.value)}><option value="">Pilih kota Masjid</option>{['Jakarta','Bogor','Bandung','Semarang','Yogyakarta','Surabaya','Medan','Makassar','Denpasar','Balikpapan','Jayapura'].map(name=><option key={name}>{name}</option>)}</select></>}{!canWrite&&<p>{city||'Kota belum diatur Admin.'}</p>}<div className="brochure-prayers">{[['☀','Subuh','Fajr'],['☀','Dzuhur','Dhuhr'],['☁','Ashar','Asr'],['☀','Maghrib','Maghrib'],['☾','Isya','Isha']].map(([icon,name,key])=><div key={key}><span aria-hidden="true">{icon}</span><strong>{name}</strong><b>{times[key]||'—'}</b><small>{times[key]?'Jadwal hari ini':'Pilih kota'}</small></div>)}</div><p className="brochure-note" role="status">{status}</p></section>;
 }
 export default function BrochureOverview({programCount,programs=[]}:{programCount?:number;programs?:Array<{id:string;title:string;date:string}>}){
  const {records,plan,settings,preview}=useWorkspace();

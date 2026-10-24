@@ -21,7 +21,7 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
         <PasswordInput id="password" name="password" autoComplete="current-password" required/>
         <button type="submit">Masuk dengan aman</button>
       </form>
-      <Link href="/forgot-password">Lupa kata sandi?</Link>
+      <Link href="/forgot-password">Lupa kata sandi?</Link><p><Link href="/buat-akun">Buat Akun Admin / Pembaca</Link></p>
       <p className="helper">Akun tenant diaktifkan setelah verifikasi administrator. Belum memiliki akun Masjid? <Link href="/paket">Lihat paket dan ajukan pendaftaran.</Link></p>
       <Link href="/">Kembali ke halaman utama</Link>
     </section>
