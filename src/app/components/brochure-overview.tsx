@@ -33,7 +33,7 @@ export default function BrochureOverview({programCount,programs=[]}:{programCoun
  const money=(value:number)=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value);
  const exists=(kind:string)=>records.some(row=>row.kind===kind);
  const cards=[
-  {kind:'keuangan',tone:'green',icon:6,title:'Saldo Kas Masjid',value:totals.income.length||totals.expenses.length?money(totals.balance):'—'},
+  {kind:'donasi',tone:'green',icon:6,title:'Saldo Kas Masjid',value:totals.income.length||totals.expenses.length?money(totals.balance):'—'},
   {kind:'keuangan',tone:'red',icon:6,title:'Pengeluaran Hari Ini',value:exists('keuangan')?money(totals.expensesToday):'—'},
   {kind:'donasi',tone:'blue',icon:3,title:'Donasi Hari Ini',value:exists('donasi')?money(totals.donationsToday):'—'},
   {kind:'infaq',tone:'green',icon:3,title:'Infaq & Shodaqoh Hari Ini',value:exists('infaq')?money(totals.infaqToday):'—',detail:totals.infaqNonCashToday?totals.infaqNonCashToday+' penerimaan non-uang hari ini':undefined},
@@ -50,7 +50,7 @@ export default function BrochureOverview({programCount,programs=[]}:{programCoun
  const colors=['#168bf5','#13ba7d','#ffc233','#9d37ed'];let end=0;
  const gradient=sourceValues.map((value,i)=>{const start=end;end+=sourceTotal?value/sourceTotal*100:0;return colors[i]+' '+start+'% '+end+'%';}).join(',');
  const agenda=[...programs,...records.filter(row=>row.kind==='kegiatan'&&row.data.published).map(row=>({id:row.id,title:String(row.data.title),date:String(row.data.date)}))];
- const financial=hasModule(plan,'keuangan');
+ const financial=hasModule(plan,'donasi');
  return <>
  <section className="brochure-hero"><span className="brochure-hero-icon"><MenuIcon index={6}/></span><div><h1>Dashboard Pengelola Masjid</h1><p>{settings.name||'Kelola Masjid dengan data, kolaborasi dan teknologi'}<br/>untuk umat yang lebih baik.</p></div><blockquote>“Memakmurkan Masjid,<br/>Membangun Umat,<br/>Meraih Ridha Allah”</blockquote></section>
  <p className="brochure-note dashboard-source-note">Paket {plan} · Ringkasan hanya berasal dari input menu {preview?'pratinjau':'Masjid'} yang tercatat. Hari ini mengikuti zona waktu {settings.timezone||'Asia/Jakarta'}.</p>

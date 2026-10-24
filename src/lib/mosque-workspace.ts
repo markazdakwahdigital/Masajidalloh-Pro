@@ -29,9 +29,10 @@ export const MODULE_FIELDS:Record<string,Field[]>={
  setting:[field('name','Nama Tampilan Masjid'),field('timezone','Zona Waktu','select',['Asia/Jakarta','Asia/Makassar','Asia/Jayapura']),field('email','Email Pemberitahuan','email',undefined,true),website(),phone()],
 };
 export function hasModule(plan:PackagePlan,kind:string){
- if(['dashboard','profil','kegiatan','shalat','setting'].includes(kind))return true;
- if(plan==='BASIC')return false;
- return kind!=='umkm'||plan==='ENTERPRISE';
+ const basic=['dashboard','profil','donasi','infaq','zakat','wakaf','jamaah','setting'];
+ const professional=['keuangan','kegiatan','penerima','shalat','laporan'];
+ const enterprise=['inventaris','petugas','umkm','broadcast'];
+ return basic.includes(kind)||(plan!=='BASIC'&&professional.includes(kind))||(plan==='ENTERPRISE'&&enterprise.includes(kind));
 }
 export function safeWebsite(input:string){
  if(!input.trim())return '';
