@@ -14,6 +14,11 @@ function createPrismaClient(): PrismaClient {
   if (!connectionString) {
     throw new Error('Database connection is not configured');
   }
+  const target = new URL(connectionString);
+  if (!['postgres:', 'postgresql:'].includes(target.protocol) || !target.hostname || !target.password || target.password.includes('*')) {
+    throw new Error('Database connection URI is invalid or masked');
+  }
+  console.info('database_target', {host: target.hostname, port: target.port || '5432'});
   return new PrismaClient({
     adapter: new PrismaPg({ connectionString }),
   });
