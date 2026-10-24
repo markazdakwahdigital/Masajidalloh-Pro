@@ -12,6 +12,7 @@ if (missing.length) {
   console.error(`Missing required build secrets: ${missing.join(', ')}`);
   process.exit(1);
 }
+for (const name of ['DKM_DRIVE_WEB_APP_URL','DKM_DRIVE_SIGNING_KEY']) { if (process.env[name]) secrets[name]=process.env[name]; }
 const directory = mkdtempSync(join(tmpdir(), 'masajidalloh-deploy-'));
 try {
   const file = join(directory, 'secrets.json');
