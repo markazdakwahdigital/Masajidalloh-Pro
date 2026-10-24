@@ -10,5 +10,7 @@ assert.ok(statSync(main).size > 4096, 'Worker entry module is missing or unexpec
 console.log(`PASS Worker manifest references a server module (${statSync(main).size} bytes)`);
 
 const modules = readdirSync(resolve(root, 'bundle'), {recursive:true});
-assert.ok(modules.some(file => /query_compiler_bg.*\.wasm$/.test(String(file))), 'Prisma query compiler WASM must be bundled for Workers');
-console.log('PASS Prisma query compiler WASM is included');
+assert.ok(!modules.some(file => /query_compiler_bg.*\.wasm$/.test(String(file))), 'Runtime must use authenticated HTTPS RPC without a Prisma compiler');
+const serverCode = modules.filter(file => String(file).endsWith('.js')).map(file => readFileSync(resolve(root, 'bundle', String(file)), 'utf8')).join('\n');
+assert.ok(serverCode.includes('mp_workspace') && serverCode.includes('mp_save_record'), 'Authenticated tenant RPC routes must be bundled');
+console.log('PASS authenticated HTTPS tenant RPC is bundled without the Prisma runtime');
