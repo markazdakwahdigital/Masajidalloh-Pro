@@ -7,7 +7,10 @@ import { AuthorizationError } from '@/lib/tenant';
 import ProfileForm from './profile-form';
 import ProgramForm from './program-form';
 import { changeProgramStatus } from './program-actions';
-import { DashboardFrame, Panel, StatCard } from '@/app/components/premium-dashboard';
+import { DashboardFrame, Panel } from '@/app/components/premium-dashboard';
+
+import BrochureOverview from '@/app/components/brochure-overview';
+import EnterpriseModules from '@/app/components/enterprise-modules';
 
 export const dynamic='force-dynamic';
 export default async function MosquePage({params}:{params:Promise<{mosqueId:string}>}) {
@@ -35,13 +38,7 @@ export default async function MosquePage({params}:{params:Promise<{mosqueId:stri
   } catch { /* Role is optional in the current pilot schema. */ }
   const pct=programs.length>0?Math.round(published/programs.length*100):0;
   return <DashboardFrame mosqueName={mosque.name} profileName={ketuaName} profileRole={ketuaName?'Ketua DKM':'Ketua DKM · belum ditetapkan'} searchItems={[{label:'Ringkasan Eksekutif',href:'#dashboard'},{label:'Profil Masjid',href:'#profil'},...(canReadPrograms?[{label:'Program dan Kegiatan',href:'#kegiatan'},...programs.map(p=>({label:p.title,href:'#kegiatan'}))]:[])]} actions={<Link className="premium-link" href="/dashboard">← Daftar Masjid</Link>}>
-    <section className="premium-welcome"><div><span className="welcome-kicker">✧ MANAJEMEN MASJID</span><h1>{mosque.name}</h1><p>Pengelolaan amanah masjid yang modern, profesional, dan transparan.</p><span className="welcome-chip">● Masjid aktif · Akses sesuai kewenangan</span></div><span className="welcome-emblem" aria-hidden="true">🕌</span></section>
-    <div className="premium-stats">
-      <StatCard icon="🗓️" title="TOTAL KEGIATAN" value={canReadPrograms?programs.length:'—'} caption={canReadPrograms?'Maksimal 50 kegiatan terbaru':'Akses terbatas'} tone="blue"/>
-      <StatCard icon="✅" title="DIPUBLIKASIKAN" value={canReadPrograms?published:'—'} caption="Program aktif tercatat" tone="green"/>
-      <StatCard icon="📝" title="DRAFT PROGRAM" value={canReadPrograms?draft:'—'} caption="Belum dipublikasikan" tone="gold"/>
-      <StatCard icon="💰" title="KEUANGAN" value="—" caption="Modul belum diaktifkan" tone="purple"/>
-    </div>
+    <BrochureOverview programCount={canReadPrograms?published:undefined} programs={programs.filter(p=>p.status==='PUBLISHED').map(p=>({id:p.id,title:p.title,date:new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',timeZone:'Asia/Jakarta'}).format(p.startsAt)}))}/>
     <div className="premium-two-cols">
       <Panel id="profil" icon="🏛️" title="PROFIL MASJID" sub="Informasi identitas resmi masjid.">
        <p className="data-label">IDENTITAS MASJID</p><p className="slug-value">{mosque.slug}</p>
@@ -66,5 +63,5 @@ export default async function MosquePage({params}:{params:Promise<{mosqueId:stri
       <div className="pending-module-grid">{[['💰','Keuangan'],['🤲','ZISWAF'],['👥','Jamaah'],['🏗️','Aset']].map(([icon,name])=><div key={name} className="pending-module"><span>{icon}</span><strong>{name}</strong><small>Belum aktif</small></div>)}</div>
       <p className="info-note">Belum ada angka keuangan, jamaah, atau donasi yang diaktifkan. Grafik tidak menggunakan data simulasi.</p>
     </Panel>
-  </DashboardFrame>;
+  <EnterpriseModules /></DashboardFrame>;
 }

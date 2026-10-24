@@ -9,7 +9,7 @@ export default async function Register({searchParams}:{searchParams:Promise<{pak
  const chosen=TENANT_PLANS.some(x=>x.id===paket)?paket:'BASIC';
  return <main className="tenant-register">
   <div className="tenant-register-card">
-   <Link className="tenant-register-brand" href="/"><Image src="/brand/logo.webp?v=2" alt="Logo resmi MASAJIDALLOH PRO" width={95} height={95} unoptimized/><strong>MASAJIDALLOH PRO</strong></Link>
+   <Link className="tenant-register-brand" href="/"><Image src="/brand/logo.webp?v=3" alt="Logo resmi MASAJIDALLOH PRO" width={95} height={95} unoptimized/><strong>MASAJIDALLOH PRO</strong></Link>
    <h1>Daftarkan Masjid</h1><p>Isi identitas masjid dan penanggung jawab. Tim platform akan meninjau permohonan sebelum akun diaktifkan.</p>
    {status==='received'&&<p className="tenant-message success" role="status">Jika data memenuhi persyaratan, permohonan Anda telah diterima atau sedang dalam peninjauan. Saat ini akun masjid belum aktif. Jangan melakukan pembayaran apa pun.</p>}
    {status==='invalid'&&<p className="tenant-message warning" role="alert">Periksa kembali kolom wajib, email, dan nomor WhatsApp.</p>}

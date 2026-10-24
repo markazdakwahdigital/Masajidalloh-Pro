@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 type Result = {label:string;href:string};
 type Props = {mosqueName?:string;profileName?:string;profileRole?:string;logo?:string;searchItems:Result[];logout?:boolean;backHref?:string};
-type Salah = {name:string;time:string};
 const CITY_OPTIONS = [
  {name:'Bogor',tz:'Asia/Jakarta'},{name:'Jakarta',tz:'Asia/Jakarta'},{name:'Bandung',tz:'Asia/Jakarta'},
  {name:'Semarang',tz:'Asia/Jakarta'},{name:'Yogyakarta',tz:'Asia/Jakarta'},{name:'Surabaya',tz:'Asia/Jakarta'},
@@ -58,10 +57,10 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
  const results=useMemo(()=>!q.trim()?[]:searchItems.filter(x=>x.label.toLocaleLowerCase('id').includes(q.trim().toLocaleLowerCase('id'))).slice(0,7),[q,searchItems]);
  const initial=(profileName||'DKM').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
  return <header className="mdd-toolbar">
-   <div className="mdd-compact-brand"><Image src="/brand/logo.webp?v=2" alt="MASAJIDALLOH PRO" width={40} height={40} unoptimized/><span>MASAJIDALLOH <b>PRO</b></span></div>
+   <div className="mdd-compact-brand"><Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO" width={40} height={40} unoptimized/><span>MASAJIDALLOH <b>PRO</b></span></div>
    <div className="mdd-search">
     <span aria-hidden="true">⌕</span><label className="sr-only" htmlFor="mdd-search-input">Cari menu dan kegiatan</label>
-    <input id="mdd-search-input" placeholder="Cari menu, masjid, kegiatan..." value={q} onChange={e=>setQ(e.target.value)} aria-expanded={results.length>0}/>
+    <input id="mdd-search-input" placeholder={mosqueName?'Cari jamaah, donasi, program, laporan...':'Cari menu, masjid, kegiatan...'} value={q} onChange={e=>setQ(e.target.value)}/>
     {q&&<button type="button" className="mdd-x" aria-label="Bersihkan pencarian" onClick={()=>setQ('')}>×</button>}
     {q&&<div className="mdd-search-results" role="status">
       {results.length?results.map((x,i)=><Link onClick={()=>setQ('')} key={i} href={x.href}>{x.label} <span>↗</span></Link>):<p>Tidak ada menu atau kegiatan yang cocok.</p>}
