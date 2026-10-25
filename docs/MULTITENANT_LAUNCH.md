@@ -14,7 +14,7 @@ Authenticated RPCs intentionally use SECURITY DEFINER with an empty search_path,
 
 ## Verification
 - 23 local tests, TypeScript, lint and Cloudflare production build.
-- tests/multitenant-database.sql: 45 synthetic tenants, 15 per package, 195 database assertions including membership approval/revocation, isolation, blocked reader writes, plan gates, verification and registration limits. Runs in a transaction with ROLLBACK, no persistent test users/tenants.
+- tests/multitenant-database.sql: 45 synthetic tenants, 15 per package, 200 database assertions including membership approval/revocation, isolation, blocked reader writes, plan gates, verification and registration limits. Runs in a transaction with ROLLBACK, no persistent test users/tenants.
 - This is not a 45-session concurrent browser or production load test.
 
 ## Required before general launch
@@ -28,3 +28,5 @@ Database SQL is in supabase/multitenant-launch.sql. Preserve existing data; do n
 
 ## Tenant management
 Apply supabase/tenant-management.sql after the base launch SQL. Operator-only status/plan/Admin changes require a reason, a review step and an exact current-state check under a tenant row lock. The Admin helper takes the same lock before authorization so a queued old Admin write cannot pass after reassignment or suspension. Admin replacement accepts only an active, verified existing member; the prior Admin remains a reader. No tenant records are deleted on suspension or package downgrade. Operator read APIs disclose management metadata, not workspace records. Latest 50 tenant audit entries are shown. Existing tenant settings were not changed during verification. Positive production changes must be made deliberately by the signed-in operator.
+
+Tenant archive: apply the updated tenant-management.sql to add Mosque.archivedAt and an archived-implies-SUSPENDED check constraint. Archive requires prior suspension, operator authorization, a reason and optimistic state matching. Restore clears the archive timestamp but retains suspension; activation is a separate decision. No permanent deletion or retention/purge schedule is implemented. Tests simulate archived fixture access/restore in a rollback transaction without changing real tenant status.

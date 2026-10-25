@@ -56,6 +56,18 @@ BEGIN
  IF jsonb_array_length(q->'records')<>0 THEN RAISE EXCEPTION 'archive_failed'; END IF;checks:=checks+1;
  denied:=false;BEGIN PERFORM public.mp_operator();EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
  IF NOT denied THEN RAISE EXCEPTION 'operator_escalation_allowed'; END IF;checks:=checks+1;
+ UPDATE public."Mosque" SET status='SUSPENDED',"archivedAt"=now() WHERE id=first_m;
+ denied:=false;BEGIN PERFORM public.mp_workspace(first_m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
+ IF NOT denied THEN RAISE EXCEPTION 'archived_tenant_read_allowed'; END IF;checks:=checks+1;
+ denied:=false;BEGIN PERFORM public.mp_save_record(first_m,'donasi','{}');EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
+ IF NOT denied THEN RAISE EXCEPTION 'archived_tenant_write_allowed'; END IF;checks:=checks+1;
+ denied:=false;BEGIN UPDATE public."Mosque" SET status='ACTIVE' WHERE id=first_m;EXCEPTION WHEN check_violation THEN denied:=true;END;
+ IF NOT denied THEN RAISE EXCEPTION 'archived_tenant_reactivated'; END IF;checks:=checks+1;
+ UPDATE public."Mosque" SET "archivedAt"=NULL WHERE id=first_m;
+ denied:=false;BEGIN PERFORM public.mp_workspace(first_m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
+ IF NOT denied THEN RAISE EXCEPTION 'restored_tenant_automatically_active'; END IF;checks:=checks+1;
+ UPDATE public."Mosque" SET status='ACTIVE' WHERE id=first_m;
+ q:=public.mp_workspace(first_m);IF (q->>'canWrite')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'restored_admin_lost'; END IF;checks:=checks+1;
  denied:=false;BEGIN PERFORM public.mp_operator_tenants();EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
  IF NOT denied THEN RAISE EXCEPTION 'management_listing_escalation'; END IF;checks:=checks+1;
  denied:=false;BEGIN PERFORM public.mp_manage_tenant(first_m,'plan','ENTERPRISE','{}','Synthetic test');EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;

@@ -17,6 +17,7 @@ enum MosqueStatus {
   SUSPENDED
 }
 model Mosque {
+  archivedAt DateTime? @db.Timestamptz
   id          String @id @default(uuid()) @db.Uuid
   name        String
   slug        String @unique

@@ -1,4 +1,6 @@
 BEGIN;
+ALTER TABLE public."Mosque" ADD COLUMN IF NOT EXISTS "archivedAt" timestamptz;
+DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='Mosque_archived_suspended' AND conrelid='public."Mosque"'::regclass) THEN ALTER TABLE public."Mosque" ADD CONSTRAINT "Mosque_archived_suspended" CHECK("archivedAt" IS NULL OR status='SUSPENDED'); END IF; END $$;
 CREATE OR REPLACE FUNCTION mp_private.admin(p_mosque uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE uid uuid:=mp_private.actor();
 BEGIN
@@ -11,13 +13,20 @@ DECLARE actor uuid; current_state jsonb; old_admin uuid; target uuid; before_sta
 BEGIN
  IF NOT mp_private.operator() THEN RAISE EXCEPTION 'operator_required' USING ERRCODE='42501'; END IF;
  actor:=mp_private.actor();
- IF p_action IS NULL OR p_action NOT IN ('status','plan','admin') OR coalesce(length(trim(p_reason)),0) NOT BETWEEN 5 AND 500 THEN RAISE EXCEPTION 'invalid_change'; END IF;
+ IF p_action IS NULL OR p_action NOT IN ('status','plan','admin','archive','restore') OR coalesce(length(trim(p_reason)),0) NOT BETWEEN 5 AND 500 THEN RAISE EXCEPTION 'invalid_change'; END IF;
  PERFORM 1 FROM public."Mosque" WHERE id=p_mosque FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'tenant_not_found'; END IF;
- SELECT a."userId",jsonb_build_object('status',q.status,'plan',coalesce(s.plan,'BASIC'),'adminId',a."userId") INTO old_admin,current_state FROM public."Mosque" q LEFT JOIN public."MosqueSettings" s ON s."mosqueId"=q.id LEFT JOIN public."MosqueAdmin" a ON a."mosqueId"=q.id WHERE q.id=p_mosque;
- IF p_expected IS NULL OR current_state<>p_expected THEN RAISE EXCEPTION 'stale_tenant'; END IF;
+ SELECT a."userId",jsonb_build_object('status',q.status,'plan',coalesce(s.plan,'BASIC'),'adminId',a."userId",'archivedAt',q."archivedAt") INTO old_admin,current_state FROM public."Mosque" q LEFT JOIN public."MosqueSettings" s ON s."mosqueId"=q.id LEFT JOIN public."MosqueAdmin" a ON a."mosqueId"=q.id WHERE q.id=p_mosque;
+ IF p_expected IS NULL OR current_state<>('{"archivedAt":null}'::jsonb||p_expected) THEN RAISE EXCEPTION 'stale_tenant'; END IF;
  before_state:=current_state;
- IF p_action='status' THEN
+ IF current_state->>'archivedAt' IS NOT NULL AND p_action<>'restore' THEN RAISE EXCEPTION 'tenant_archived'; END IF;
+ IF p_action='archive' THEN
+  IF current_state->>'status'<>'SUSPENDED' OR p_value IS DISTINCT FROM 'ARCHIVE' THEN RAISE EXCEPTION 'suspend_before_archive'; END IF;
+  UPDATE public."Mosque" SET "archivedAt"=now(),"updatedAt"=now() WHERE id=p_mosque;
+ ELSIF p_action='restore' THEN
+  IF current_state->>'archivedAt' IS NULL OR p_value IS DISTINCT FROM 'RESTORE' THEN RAISE EXCEPTION 'tenant_not_archived'; END IF;
+  UPDATE public."Mosque" SET "archivedAt"=NULL,status='SUSPENDED',"updatedAt"=now() WHERE id=p_mosque;
+ ELSIF p_action='status' THEN
   IF p_value IS NULL OR p_value NOT IN ('ACTIVE','SUSPENDED') THEN RAISE EXCEPTION 'invalid_status'; END IF;
   IF p_value='ACTIVE' AND old_admin IS NULL THEN RAISE EXCEPTION 'admin_required'; END IF;
   UPDATE public."Mosque" SET status=p_value::public."MosqueStatus","updatedAt"=now() WHERE id=p_mosque;
@@ -35,7 +44,7 @@ CREATE OR REPLACE FUNCTION public.mp_operator_tenants() RETURNS jsonb LANGUAGE p
 BEGIN
  IF NOT mp_private.operator() THEN RAISE EXCEPTION 'operator_required' USING ERRCODE='42501'; END IF;
  PERFORM mp_private.actor();
- RETURN jsonb_build_object('tenants',coalesce((SELECT jsonb_agg(jsonb_build_object('id',q.id,'name',q.name,'status',q.status,'plan',coalesce(s.plan,'BASIC'),'adminId',a."userId",'admin',u.email,'adminName',u.name,'whatsapp',coalesce(nullif(s.data->>'servicePhone',''),(SELECT t.whatsapp FROM public."TenantApplication" t WHERE t."mosqueId"=q.id AND t.status='APPROVED' ORDER BY t."reviewedAt" DESC LIMIT 1)),'createdAt',q."createdAt",'readers',(SELECT count(*) FROM public."MosqueMembership" m WHERE m."mosqueId"=q.id AND m.status='ACTIVE' AND m."userId" IS DISTINCT FROM a."userId"),'members',coalesce((SELECT jsonb_agg(jsonb_build_object('id',v.id,'name',v.name,'email',v.email)) FROM public."MosqueMembership" m JOIN public."User" v ON v.id=m."userId" JOIN auth.users au ON au.id=v."authUserId" WHERE m."mosqueId"=q.id AND m.status='ACTIVE' AND au.email_confirmed_at IS NOT NULL),'[]'::jsonb)) ORDER BY q."createdAt" DESC) FROM public."Mosque" q LEFT JOIN public."MosqueSettings" s ON s."mosqueId"=q.id LEFT JOIN public."MosqueAdmin" a ON a."mosqueId"=q.id LEFT JOIN public."User" u ON u.id=a."userId"),'[]'::jsonb),'history',coalesce((SELECT jsonb_agg(to_jsonb(h)) FROM (SELECT l."createdAt",l.action,l.resource,q.name AS "mosqueName" FROM public."AuditLog" l JOIN public."Mosque" q ON q.id=l."mosqueId" WHERE l.action LIKE 'tenant.%' ORDER BY l."createdAt" DESC LIMIT 50) h),'[]'::jsonb));
+ RETURN jsonb_build_object('tenants',coalesce((SELECT jsonb_agg(jsonb_build_object('id',q.id,'name',q.name,'archivedAt',q."archivedAt",'status',q.status,'plan',coalesce(s.plan,'BASIC'),'adminId',a."userId",'admin',u.email,'adminName',u.name,'whatsapp',coalesce(nullif(s.data->>'servicePhone',''),(SELECT t.whatsapp FROM public."TenantApplication" t WHERE t."mosqueId"=q.id AND t.status='APPROVED' ORDER BY t."reviewedAt" DESC LIMIT 1)),'createdAt',q."createdAt",'readers',(SELECT count(*) FROM public."MosqueMembership" m WHERE m."mosqueId"=q.id AND m.status='ACTIVE' AND m."userId" IS DISTINCT FROM a."userId"),'members',coalesce((SELECT jsonb_agg(jsonb_build_object('id',v.id,'name',v.name,'email',v.email)) FROM public."MosqueMembership" m JOIN public."User" v ON v.id=m."userId" JOIN auth.users au ON au.id=v."authUserId" WHERE m."mosqueId"=q.id AND m.status='ACTIVE' AND au.email_confirmed_at IS NOT NULL),'[]'::jsonb)) ORDER BY q."createdAt" DESC) FROM public."Mosque" q LEFT JOIN public."MosqueSettings" s ON s."mosqueId"=q.id LEFT JOIN public."MosqueAdmin" a ON a."mosqueId"=q.id LEFT JOIN public."User" u ON u.id=a."userId"),'[]'::jsonb),'history',coalesce((SELECT jsonb_agg(to_jsonb(h)) FROM (SELECT l."createdAt",l.action,l.resource,q.name AS "mosqueName" FROM public."AuditLog" l JOIN public."Mosque" q ON q.id=l."mosqueId" WHERE l.action LIKE 'tenant.%' ORDER BY l."createdAt" DESC LIMIT 50) h),'[]'::jsonb));
 END $$;
 REVOKE ALL ON FUNCTION public.mp_manage_tenant(uuid,text,text,jsonb,text),public.mp_operator_tenants() FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.mp_manage_tenant(uuid,text,text,jsonb,text),public.mp_operator_tenants() TO authenticated;
