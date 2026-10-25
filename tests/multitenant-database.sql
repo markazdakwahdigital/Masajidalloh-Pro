@@ -56,6 +56,11 @@ BEGIN
  IF jsonb_array_length(q->'records')<>0 THEN RAISE EXCEPTION 'archive_failed'; END IF;checks:=checks+1;
  denied:=false;BEGIN PERFORM public.mp_operator();EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
  IF NOT denied THEN RAISE EXCEPTION 'operator_escalation_allowed'; END IF;checks:=checks+1;
+ denied:=false;BEGIN PERFORM public.mp_operator_tenants();EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
+ IF NOT denied THEN RAISE EXCEPTION 'management_listing_escalation'; END IF;checks:=checks+1;
+ denied:=false;BEGIN PERFORM public.mp_manage_tenant(first_m,'plan','ENTERPRISE','{}','Synthetic test');EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;
+ IF NOT denied THEN RAISE EXCEPTION 'management_write_escalation'; END IF;checks:=checks+1;
+ IF has_function_privilege('anon','public.mp_manage_tenant(uuid,text,text,jsonb,text)','EXECUTE') OR has_function_privilege('anon','public.mp_operator_tenants()','EXECUTE') THEN RAISE EXCEPTION 'anonymous_management_grant'; END IF;checks:=checks+1;
  PERFORM public.mp_apply_tenant('{"mosqueName":"Synthetic Application","city":"Jakarta","address":"Alamat pengujian sementara","contactName":"Synthetic Admin","whatsapp":"080000000000","plan":"BASIC"}');
  PERFORM public.mp_apply_tenant('{"mosqueName":"Synthetic Application","city":"Jakarta","address":"Alamat pengujian sementara","contactName":"Synthetic Admin","whatsapp":"080000000000","plan":"BASIC"}');
  denied:=false;BEGIN PERFORM public.mp_apply_tenant('{"mosqueName":"Synthetic Application","city":"Jakarta","address":"Alamat pengujian sementara","contactName":"Synthetic Admin","whatsapp":"080000000000","plan":"BASIC"}');EXCEPTION WHEN raise_exception THEN denied:=SQLERRM='application_rate_limit';END;
