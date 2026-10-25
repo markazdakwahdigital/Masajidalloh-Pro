@@ -22,7 +22,7 @@ export default function FinishAuth() {
         const {data:{user},error:err}=await client.auth.getUser();
         if(err||!user) throw new Error('missing');
         const next=query.get('next');
-        const target=next==='/dashboard'?'/dashboard':'/setup-password';
+        const target=next==='/dashboard'?'/dashboard?welcome=verified':'/setup-password';
         window.history.replaceState(null,'',window.location.pathname);
         if(!cancelled) router.replace(target);
       } catch {
