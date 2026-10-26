@@ -29,12 +29,17 @@ try {
     assert.ok(!body.includes('postgresql://test'), 'Database URL leaked into HTML');
     console.log(`PASS ${path}: server-rendered HTML`);
   }
-  for (const path of ['/dashboard', '/dashboard/masjid/00000000-0000-0000-0000-000000000000']) {
+  for (const path of ['/dashboard']) {
     const response = await request(path);
     assert.ok([302, 303, 307, 308].includes(response.status), `${path} must reject anonymous access`);
     assert.equal(new URL(response.headers.get('location'), base).pathname, '/login');
     console.log(`PASS ${path}: anonymous user redirected`);
   }
+  const unavailable = await request('/dashboard/masjid/00000000-0000-0000-0000-000000000000');
+  assert.equal(unavailable.status,200);
+  const unavailableHtml=await unavailable.text();
+  assert.ok(unavailableHtml.includes('Dashboard Masjid belum tersedia'));
+  assert.ok(!unavailableHtml.includes('<form'), 'Unavailable public tenant must not include input forms');
   // Submit the real progressive-enhancement form with invalid empty fields.
   // Validation must redirect before making any request to Supabase.
   const loginHtml = await (await request('/login')).text();

@@ -26,7 +26,7 @@ export async function saveWorkspace(mosqueId:string,kind:string,input:ModuleData
    }catch{message='Biodata tersimpan. Foto belum berhasil ditautkan; periksa Google Drive sebelum mengirim ulang.';}
   }
   revalidatePath('/dashboard/masjid/'+mosqueId);return {ok:true,message,...result};
- }catch{return {ok:false,message:'Data tidak disimpan. Pastikan akun adalah satu Admin terdaftar pada Masjid aktif dan menu termasuk paketnya.'};}
+ }catch{return {ok:false,message:'Data tidak disimpan. Pastikan akun adalah Admin terdaftar pada Masjid aktif dan menu termasuk paketnya.'};}
 }
 export async function archiveRecord(mosqueId:string,id:string):Promise<SaveResult>{
  try{await dataRpc('mp_archive_record',{p_mosque:mosqueId,p_id:id});revalidatePath('/dashboard/masjid/'+mosqueId);return {ok:true,message:'Data diarsipkan dari laporan aktif.'};}

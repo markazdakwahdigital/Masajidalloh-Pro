@@ -1,0 +1,45 @@
+BEGIN;
+CREATE TEMP TABLE revision_result(result jsonb);
+ALTER TABLE pg_temp.revision_result ENABLE ROW LEVEL SECURITY;
+DO $$
+DECLARE i int; a uuid; b uuid; c uuid; u uuid; v uuid; m uuid; other uuid; rec uuid; em text; q jsonb; denied boolean; checks int:=0;
+BEGIN
+ FOR i IN 1..45 LOOP
+  a:=gen_random_uuid();b:=gen_random_uuid();c:=gen_random_uuid();em:='additional-'||b||'@example.invalid';
+  INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES(a,'primary-'||a||'@example.invalid',now(),'{"name":"Primary","whatsapp":"081234567890"}'),(b,em,now(),'{"name":"Additional"}'),(c,'other-'||c||'@example.invalid',now(),'{}');
+  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);u:=mp_private.actor();
+  INSERT INTO public."Mosque"(name,slug,status) VALUES('Revision fixture',gen_random_uuid()::text,'ACTIVE') RETURNING id INTO m;
+  INSERT INTO public."MosqueSettings"("mosqueId",plan,data) VALUES(m,CASE WHEN i<=15 THEN 'BASIC' WHEN i<=30 THEN 'PRO' ELSE 'ENTERPRISE' END,'{"name":"Public Mosque","timezone":"Asia/Jakarta","website":"https://example.invalid","email":"PRIVATE_SETTINGS"}');
+  INSERT INTO public."MosqueMembership"("mosqueId","userId",status) VALUES(m,u,'ACTIVE');INSERT INTO public."MosqueAdmin"("mosqueId","userId") VALUES(m,u);
+  IF public.mp_can_apply() THEN RAISE EXCEPTION 'registered_admin_can_register_again'; END IF;checks:=checks+1;
+  denied:=false;BEGIN PERFORM public.mp_apply_tenant('{"plan":"BASIC","mosqueName":"Test Mosque","city":"Jakarta","address":"Alamat pengujian sementara","contactName":"Test Admin","whatsapp":"081234567890"}');EXCEPTION WHEN raise_exception THEN denied:=SQLERRM='admin_registration_blocked';END;IF NOT denied THEN RAISE EXCEPTION 'registration_bypass'; END IF;checks:=checks+1;
+  IF (SELECT whatsapp FROM public."User" WHERE id=u) IS DISTINCT FROM '081234567890' THEN RAISE EXCEPTION 'whatsapp_not_saved'; END IF;checks:=checks+1;
+  q:=public.mp_save_record(m,'dkm',jsonb_build_object('name','Synthetic DKM','position','Sekretaris DKM','gender','Laki-laki','address','PRIVATE_ADDRESS','phone','081234567890','email',em,'startDate','2026-10-26','active',true,'note','PRIVATE_NOTE'));rec:=(q->'record'->>'id')::uuid;
+  PERFORM public.mp_invite_admin(m,rec);
+  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',c,'role','authenticated')::text,true);PERFORM mp_private.actor();
+  denied:=false;BEGIN PERFORM public.mp_accept_admin(m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'wrong_email_accepted'; END IF;checks:=checks+1;
+  denied:=false;BEGIN PERFORM public.mp_workspace(m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'personal_workspace_exposed'; END IF;checks:=checks+1;
+  q:=public.mp_public_workspace(m);IF q::text LIKE '%PRIVATE_%' OR q->'settings'?'email' OR q->'records'->0->'data'?'email' OR (q->>'canWrite')::boolean THEN RAISE EXCEPTION 'private_public_leak'; END IF;checks:=checks+1;
+  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',b,'role','authenticated')::text,true);v:=mp_private.actor();PERFORM public.mp_accept_admin(m);
+  q:=public.mp_workspace(m);IF NOT (q->>'canWrite')::boolean THEN RAISE EXCEPTION 'additional_admin_denied'; END IF;checks:=checks+1;
+  PERFORM public.mp_save_record(m,'donasi','{"name":"Test donor","date":"2026-10-26","amount":"10000","method":"Tunai","purpose":"Test"}');checks:=checks+1;
+  IF public.mp_can_apply() THEN RAISE EXCEPTION 'additional_registration_allowed'; END IF;checks:=checks+1;
+  denied:=false;BEGIN PERFORM public.mp_invite_admin(m,rec);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'additional_can_manage_admins'; END IF;checks:=checks+1;
+  INSERT INTO public."Mosque"(name,slug,status) VALUES('Other fixture',gen_random_uuid()::text,'ACTIVE') RETURNING id INTO other;
+  denied:=false;BEGIN PERFORM public.mp_save_record(other,'donasi','{}');EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'cross_tenant_write'; END IF;checks:=checks+1;
+  denied:=false;BEGIN INSERT INTO public."MosqueAdmin"("mosqueId","userId") VALUES(other,v);EXCEPTION WHEN raise_exception THEN denied:=SQLERRM='admin_email_already_used';END;IF NOT denied THEN RAISE EXCEPTION 'historical_email_reused'; END IF;checks:=checks+1;
+  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);PERFORM public.mp_revoke_admin(m,em);
+  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',b,'role','authenticated')::text,true);
+  denied:=false;BEGIN PERFORM public.mp_save_record(m,'donasi','{}');EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'revoked_admin_write'; END IF;checks:=checks+1;
+  IF public.mp_can_apply() THEN RAISE EXCEPTION 'former_admin_reregister'; END IF;checks:=checks+1;
+  denied:=false;BEGIN INSERT INTO auth.users(id,email) VALUES(gen_random_uuid(),em);EXCEPTION WHEN raise_exception THEN denied:=SQLERRM='admin_email_already_used';END;IF NOT denied THEN RAISE EXCEPTION 'recreated_admin_email'; END IF;checks:=checks+1;
+  UPDATE auth.users SET email='changed-'||b||'@example.invalid' WHERE id=b;PERFORM mp_private.actor();
+  IF public.mp_can_apply() THEN RAISE EXCEPTION 'changed_admin_email_reregister'; END IF;checks:=checks+1;
+  UPDATE public."Mosque" SET status='SUSPENDED',"archivedAt"=now() WHERE id=m;
+  denied:=false;BEGIN PERFORM public.mp_public_workspace(m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'archived_public_exposed'; END IF;checks:=checks+1;
+ END LOOP;
+ IF NOT has_function_privilege('anon','public.mp_public_workspace(uuid)','EXECUTE') OR has_function_privilege('anon','public.mp_invite_admin(uuid,uuid)','EXECUTE') OR has_table_privilege('anon','public."MosqueAdminInvite"','SELECT') THEN RAISE EXCEPTION 'unsafe_grant'; END IF;checks:=checks+1;
+ INSERT INTO revision_result VALUES(jsonb_build_object('result','PASS','tenants',45,'basic',15,'professional',15,'enterprise',15,'checks',checks));
+END $$;
+SELECT * FROM revision_result;
+ROLLBACK;

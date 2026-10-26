@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {createSupabaseServerClient} from '@/lib/supabase/server';
 import {applyTenant} from './actions';
+import {dataRpc} from '@/lib/server/data-api';
 import {TENANT_PLANS} from '@/lib/tenant-plans';
 export const dynamic='force-dynamic';
 export const metadata={title:'Pendaftaran Masjid | MASAJIDALLOH PRO'};
@@ -9,6 +10,7 @@ export default async function Register({searchParams}:{searchParams:Promise<{pak
  const {paket,status}=await searchParams;
  const client=await createSupabaseServerClient();const {data:{user}}=await client.auth.getUser();
  const verified=Boolean(user?.email_confirmed_at);
+ const canApply=verified?await dataRpc<boolean>('mp_can_apply'):false;
  const chosen=TENANT_PLANS.some(x=>x.id===paket)?paket:'BASIC';
  return <main className="tenant-register">
   <div className="tenant-register-card">
@@ -18,7 +20,7 @@ export default async function Register({searchParams}:{searchParams:Promise<{pak
    {status==='limited'&&<p role="alert">Maksimum dua pengajuan per akun dalam 24 jam. Periksa status di Dashboard Anda.</p>}
    {status==='invalid'&&<p className="tenant-message warning" role="alert">Periksa kembali kolom wajib, email, dan nomor WhatsApp.</p>}
    {status==='unavailable'&&<p className="tenant-message warning" role="alert">Pendaftaran sementara tidak dapat disimpan. Silakan coba lagi nanti.</p>}
-   {!verified?<div className="tenant-message"><p>Buat akun Admin dan verifikasi email terlebih dahulu, lalu isi pendaftaran Masjid. Setiap Masjid hanya mempunyai satu Admin.</p><Link className="plan-button" href="/buat-akun">Buat Akun Admin / Pembaca</Link><p><Link href="/login">Sudah punya akun? Masuk</Link></p></div>:<form className="tenant-register-form" action={applyTenant}>
+   {verified&&!canApply?<div role="status"><p>Akun ini sudah terdaftar sebagai Admin Masjid atau memiliki permohonan yang sedang ditinjau. Pendaftaran Masjid baru tidak tersedia.</p><Link href="/dashboard">Buka Dashboard Saya</Link></div>:!verified?<div className="tenant-message"><p>Buat akun Admin dan verifikasi email terlebih dahulu, lalu isi pendaftaran Masjid. Admin utama dapat menambahkan Admin dari Pengurus DKM.</p><Link className="plan-button" href="/buat-akun">Buat Akun Admin</Link><p><Link href="/login">Sudah punya akun? Masuk</Link></p></div>:<form className="tenant-register-form" action={applyTenant}>
     <label>Nama resmi Masjid<input name="mosqueName" minLength={3} maxLength={160} required placeholder="Nama Masjid"/></label>
     <label>Kota/kabupaten<input name="city" minLength={3} maxLength={100} required placeholder="Kota atau kabupaten"/></label>
     <label>Alamat Masjid<textarea name="address" required minLength={10} maxLength={500} rows={3} placeholder="Alamat lengkap Masjid"/></label>

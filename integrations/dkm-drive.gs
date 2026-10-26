@@ -35,7 +35,7 @@ function doPost(e){
  const root=DriveApp.getFolderById(props.getProperty('DKM_DRIVE_FOLDER_ID'));
  if(root.getName()!=='Foto DKM Masjidalloh'||root.getOwner().getEmail()!=='markazdakwahdigital.01@gmail.com')return answer({ok:false});
  const folders=root.getFoldersByName(data.mosqueId),folder=folders.hasNext()?folders.next():root.createFolder(data.mosqueId);
- const name=data.recordId+'.'+ext,existing=folder.getFilesByName(name);
+ const name=data.recordId+'-'+data.nonce+'.'+ext,existing=folder.getFilesByName(name);
  const file=existing.hasNext()?existing.next():folder.createFile(Utilities.newBlob(bytes,data.mimeType,name));
  return answer({ok:true,fileId:file.getId()});
  }catch(_error){return answer({ok:false});}finally{if(lock.hasLock())lock.releaseLock();}
