@@ -1,7 +1,7 @@
 export type PackagePlan='BASIC'|'PRO'|'ENTERPRISE';
 export type ModuleData=Record<string,string|boolean>;
 export type ModuleRecord={id:string;kind:string;data:ModuleData;createdAt:string};
-export type WorkspaceSettings={name?:string;website?:string;servicePhone?:string;city?:string;address?:string;chair?:string;email?:string;timezone?:string};
+export type WorkspaceSettings={name?:string;website?:string;servicePhone?:string;city?:string;address?:string;chair?:string;email?:string;timezone?:string;vision?:string;logoPhotoId?:string;logoPreview?:string};
 export type Field={key:string;label:string;type:string;options?:string[];optional?:boolean};
 const field=(key:string,label:string,type='text',options?:string[],optional=false):Field=>({key,label,type,options,optional});
 const date=()=>field('date','Tanggal','date');
@@ -12,11 +12,12 @@ const website=()=>field('website','Alamat Website','url',undefined,true);
 const phone=()=>field('servicePhone','Nomor Layanan Masjid','tel',undefined,true);
 export const DKM_ROLES=['Ketua DKM','Sekretaris DKM','Bendahara DKM','Pembina DKM','Penasihat DKM','Muadzin','Imam Tetap','Imam Badal','Guru Kajian','Guru Tahsin & Tahfizh','Khotib Jumat','Publikasi & Broadcasting','Tim Kreatif','Pemuda Masjid','Marbot','Anggota'];
 export const MODULE_FIELDS:Record<string,Field[]>={
- profil:[field('name','Nama Masjid'),field('city','Kota / Kabupaten'),field('address','Alamat Masjid','textarea'),field('email','Email Masjid','email',undefined,true),website(),phone()],
+ profil:[field('name','Nama Masjid'),field('vision','Visi Masjid','textarea',undefined,true),field('city','Kota / Kabupaten'),field('address','Alamat Masjid','textarea'),field('email','Email Masjid','email',undefined,true),website(),phone()],
+ rekening:[field('type','Jenis Rekening','select',['Bank','E-wallet']),field('provider','Nama Bank / E-wallet'),field('number','Nomor Rekening / E-wallet'),field('holder','Atas Nama'),field('purpose','Peruntukan','text',undefined,true)],
  dkm:[field('name','Nama Lengkap'),field('position','Jabatan / Peran DKM','select',DKM_ROLES),field('birthPlace','Tempat Lahir','text',undefined,true),field('birthDate','Tanggal Lahir','date',undefined,true),field('gender','Jenis Kelamin','select',['Laki-laki','Perempuan']),field('address','Alamat Lengkap','textarea'),field('phone','Nomor WhatsApp','tel'),field('email','Email','email',undefined,true),field('education','Pendidikan Terakhir','text',undefined,true),field('occupation','Pekerjaan','text',undefined,true),field('expertise','Keahlian / Bidang Pengabdian','textarea',undefined,true),field('startDate','Mulai Menjabat','date'),field('endDate','Akhir Masa Jabatan','date',undefined,true),field('active','Pengurus aktif','checkbox'),note()],
  jamaah:[field('name','Nama Jamaah'),field('phone','Nomor WhatsApp','tel',undefined,true),field('email','Email','email',undefined,true),field('group','Kelompok Jamaah','select',['Umum','Remaja','Anak-anak','Lansia']),field('active','Jamaah aktif','checkbox'),note()],
  donasi:[field('name','Nama Donatur','text',undefined,true),date(),amount(),method(),field('purpose','Tujuan Donasi'),note()],
- infaq:[field('receipt','Jenis Penerimaan','select',['Infaq','Shodaqoh']),field('form','Jenis Infaq/Shodaqoh','select',['Barang','Makanan','Minuman','Uang','Lainnya']),date(),field('name','Nama Pemberi','text',undefined,true),field('amount','Nominal Uang (Rp)','number',undefined,true),field('item','Nama Barang / Makanan / Minuman / Lainnya','text',undefined,true),field('quantity','Jumlah','number',undefined,true),field('unit','Satuan','text',undefined,true),field('source','Sumber Penerimaan','select',['Kotak Masjid','Jumat','Transfer Bank','Tunai','QRIS','Lainnya']),note()],
+ infaq:[field('receipt','Jenis Penerimaan','select',['Infaq','Shodaqoh']),field('form','Jenis Infaq/Shodaqoh','select',['Barang','Makanan','Minuman','Uang','Lainnya']),date(),field('name','Nama Pemberi','text',undefined,true),field('amount','Nominal Uang (Rp)','number',undefined,true),field('item','Nama Barang / Makanan / Minuman / Lainnya','text',undefined,true),field('quantity','Jumlah','number',undefined,true),field('unit','Satuan','text',undefined,true),field('source','Sumber Penerimaan','select',['Kotak Masjid','Jumat','Transfer Bank','Tunai','QRIS','Takmir Masjid','Aplikasi','Lainnya']),note()],
  zakat:[field('name','Nama Muzakki'),field('type','Jenis Zakat','select',['Zakat Fitrah','Zakat Maal']),date(),amount(),field('distributed','Sudah disalurkan','checkbox'),note()],
  wakaf:[field('name','Nama Wakif'),field('type','Jenis Wakaf','select',['Uang','Tanah','Bangunan','Peralatan','Lainnya']),field('asset','Nama Aset Wakaf'),date(),field('amount','Nominal Wakaf Uang (Rp)','number',undefined,true),field('active','Wakaf aktif','checkbox'),note()],
  keuangan:[date(),field('type','Jenis Transaksi','select',['Pemasukan','Pengeluaran']),field('category','Kategori Transaksi'),amount(),field('account','Akun Kas','select',['Kas Tunai','Rekening Bank']),note()],
@@ -31,7 +32,7 @@ export const MODULE_FIELDS:Record<string,Field[]>={
  setting:[field('name','Nama Tampilan Masjid'),field('timezone','Zona Waktu','select',['Asia/Jakarta','Asia/Makassar','Asia/Jayapura']),field('email','Email Pemberitahuan','email',undefined,true),website(),phone()],
 };
 export function hasModule(plan:PackagePlan,kind:string){
- const basic=['dashboard','profil','dkm','donasi','infaq','zakat','wakaf','jamaah','setting'];
+ const basic=['dashboard','profil','rekening','dkm','donasi','infaq','zakat','wakaf','jamaah','setting'];
  const professional=['keuangan','kegiatan','penerima','shalat','laporan'];
  const enterprise=['inventaris','petugas','umkm','broadcast'];
  return basic.includes(kind)||(plan!=='BASIC'&&professional.includes(kind))||(plan==='ENTERPRISE'&&enterprise.includes(kind));
@@ -54,6 +55,7 @@ export function validateModule(kind:string,input:unknown):{data?:ModuleData;erro
   if(value&&f.type==='date'&&(!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value))))return {error:'Tanggal tidak valid.'};
   if(f.type==='url'){const url=safeWebsite(value);if(url===null)return {error:'Alamat Website harus berupa http:// atau https:// yang valid.'};data[f.key]=url;}else data[f.key]=value;
  }
+ if(kind==='rekening'&&!/^\+?[0-9][0-9 -]{3,38}[0-9]$/.test(String(data.number)))return {error:'Nomor rekening / e-wallet harus berupa 5–40 karakter angka, spasi, atau tanda hubung.'};
  if(kind==='dkm'){
   if(data.birthDate&&String(data.birthDate)>dateKey(new Date()))return {error:'Tanggal lahir tidak boleh di masa depan.'};
   if(data.endDate&&String(data.endDate)<String(data.startDate))return {error:'Akhir masa jabatan harus sesudah mulai menjabat.'};

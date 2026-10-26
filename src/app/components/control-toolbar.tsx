@@ -64,8 +64,8 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,profi
  },[city,dates?.key]);
  const results=useMemo(()=>!q.trim()?[]:searchItems.filter(x=>x.label.toLocaleLowerCase('id').includes(q.trim().toLocaleLowerCase('id'))).slice(0,7),[q,searchItems]);
  const initial=(shownName||'DKM').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
- return <header className="mdd-toolbar">
-   <div className="mdd-compact-brand"><Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO" width={40} height={40} unoptimized/><span>MASAJIDALLOH <b>PRO</b></span></div>
+ return <header className={'mdd-toolbar'+(mosqueId?' tenant-toolbar':'')}>
+   {!mosqueId&&<div className="mdd-compact-brand"><Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO" width={40} height={40} unoptimized/><span>MASAJIDALLOH <b>PRO</b></span></div>}
    <div className="mdd-search">
     <span aria-hidden="true">⌕</span><label className="sr-only" htmlFor="mdd-search-input">Cari menu dan kegiatan</label>
     <input id="mdd-search-input" placeholder={mosqueName?'Cari jamaah, donasi, program, laporan...':'Cari menu, Masjid, kegiatan...'} value={q} onChange={e=>setQ(e.target.value)}/>

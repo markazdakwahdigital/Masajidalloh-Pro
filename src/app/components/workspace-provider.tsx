@@ -16,7 +16,7 @@ export default function WorkspaceProvider({children,plan='BASIC',records:initial
   if(readOnly)return {ok:false,message:'Pratinjau pembaca tidak dapat mengubah data.'};
   if(!hasModule(plan,kind))return {ok:false,message:'Menu ini tidak termasuk paket Masjid.'};
   if(!preview&&!canWrite)return {ok:false,message:'Akun Anda tidak memiliki izin mengubah data ini.'};
-  if(photo){const error=checkDkmPhoto(photo.size,photo.type);if(error||kind!=='dkm')return {ok:false,message:error||'Foto hanya untuk Pengurus DKM.'};}
+  if(photo){const error=checkDkmPhoto(photo.size,photo.type);if(error||!['dkm','profil'].includes(kind))return {ok:false,message:error||'Gambar hanya untuk Pengurus DKM atau logo Masjid.'};}
   const checked=validateModule(kind,input);if(!checked.data)return {ok:false,message:checked.error||'Periksa formulir.'};
   let result:SaveResult;
   if(preview){
@@ -26,6 +26,7 @@ export default function WorkspaceProvider({children,plan='BASIC',records:initial
    try{const attachment=photo?new FormData():undefined;if(attachment&&photo)attachment.set('photo',photo);result=await saveAction(kind,checked.data,attachment,recordId);}catch{return {ok:false,message:'Data belum berhasil disimpan. Periksa koneksi layanan Masjid.'};}
   }
   if(preview&&result.ok&&result.record&&photo){const url=URL.createObjectURL(photo);photoUrls.current.push(url);result.record.data.photoPreview=url;}
+  if(preview&&result.ok&&result.settings&&photo&&kind==='profil'){const url=URL.createObjectURL(photo);photoUrls.current.push(url);result.settings.logoPreview=url;}
   if(result.ok&&result.settings)setSettings(result.settings);
   if(result.ok&&result.record)setRecords(previous=>[result.record!,...previous.filter(row=>row.id!==result.record!.id)]);
   return result;

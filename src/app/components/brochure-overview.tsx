@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { MenuIcon } from './enterprise-navigation';
 import {useWorkspace} from './workspace-provider';
+import MosqueAccounts from './mosque-accounts';
 import {summarize,dateKey,hasModule} from '@/lib/mosque-workspace';
 
 function Heading({icon,title,children}:{icon:number;title:string;children?:React.ReactNode}){
@@ -52,9 +53,10 @@ export default function BrochureOverview({programCount,programs=[]}:{programCoun
  const agenda=[...programs,...records.filter(row=>row.kind==='kegiatan'&&row.data.published).map(row=>({id:row.id,title:String(row.data.title),date:String(row.data.date)}))];
  const financial=hasModule(plan,'donasi');
  return <>
- <section className="brochure-hero"><span className="brochure-hero-icon"><MenuIcon index={6}/></span><div><h1>Dashboard Pengelola Masjid</h1><p>{settings.name||'Kelola Masjid dengan data, kolaborasi dan teknologi'}<br/>untuk umat yang lebih baik.</p></div><blockquote>“Memakmurkan Masjid,<br/>Membangun Umat,<br/>Meraih Ridha Allah”</blockquote></section>
+ <section className="brochure-hero"><span className="brochure-hero-icon"><MenuIcon index={6}/></span><div><h1>Dashboard Pengelola Masjid</h1><p>{settings.name||'Kelola Masjid dengan data, kolaborasi dan teknologi'}</p>{settings.vision&&<p className="mosque-vision">{settings.vision}</p>}</div><blockquote>“Memakmurkan Masjid,<br/>Membangun Umat,<br/>Meraih Ridha Allah”</blockquote></section>
  <p className="brochure-note dashboard-source-note">Paket {plan} · Ringkasan hanya berasal dari input menu {preview?'pratinjau':'Masjid'} yang tercatat. Hari ini mengikuti zona waktu {settings.timezone||'Asia/Jakarta'}.</p>
  <div className="brochure-stats">{cards.map(card=><article className={'brochure-stat '+card.tone} key={card.title}><span className="brochure-stat-orb"><MenuIcon index={card.icon}/></span><div><span>{card.title}</span><strong>{card.value}</strong></div><p>{card.detail||(card.value==='—'?'Belum ada data':'Dari data input yang tercatat')}</p></article>)}</div>
+ <section className="brochure-panel mosque-donation-accounts"><Heading icon={3} title="Rekening Donasi, Infaq & Shodaqoh"/><MosqueAccounts/></section>
  <div className="brochure-grid">
  {financial&&<section className="brochure-panel"><Heading icon={3} title="Sumber Penerimaan"/><div className="brochure-donation-chart"><div className={'brochure-donut '+(sourceTotal?'has-data':'')} style={sourceTotal?{background:'conic-gradient('+gradient+')',opacity:1}:undefined} role="img" aria-label={sourceTotal?'Diagram penerimaan berdasarkan input':'Belum ada data penerimaan'}><div><small>Total Penerimaan</small><strong>{sourceTotal?money(sourceTotal):'—'}</strong><span>{sourceTotal?'Data tercatat':'Belum ada data'}</span></div></div><ul>{sourceNames.map((name,i)=><li key={name}><i style={{background:colors[i]}}/>{name}<b>{sourceTotal?Math.round(sourceValues[i]/sourceTotal*100)+'%':'—'}</b></li>)}</ul></div></section>}
  {financial&&<section className="brochure-panel"><Heading icon={6} title="Pemasukan & Pengeluaran Hari Ini"/><div className="daily-cash-summary"><p>Pemasukan <strong>{totals.income.length?money(totals.income.filter(row=>row.data.date===today).reduce((sum,row)=>sum+Number(row.data.amount||0),0)):'—'}</strong></p><p>Pengeluaran <strong>{totals.expenses.length?money(totals.expensesToday):'—'}</strong></p><p>Saldo Kas <strong>{totals.income.length||totals.expenses.length?money(totals.balance):'—'}</strong></p></div><p className="brochure-note">Penerimaan non-uang tidak dihitung sebagai kas. Tidak ada angka atau grafik simulasi.</p></section>}

@@ -1,17 +1,14 @@
-import Image from 'next/image';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import ControlToolbar from './control-toolbar';
 import EnterpriseNavigation from './enterprise-navigation';
 import SidebarDrawer from './sidebar-drawer';
 import WorkspaceProvider, {type WorkspaceProps} from './workspace-provider';
 import SidebarContact from './sidebar-contact';
+import MosqueSidebarBrand from './mosque-sidebar-brand';
 
 export function DashboardFrame({children,mosqueName,overview=false,actions,profileName,profileRole,profileImageSrc,profileRecordId,mosqueId,searchItems=[],workspace={}}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode;profileName?:string;profileRole?:string;profileImageSrc?:string;profileRecordId?:string;mosqueId?:string;searchItems?:Array<{label:string;href:string}>;workspace?:WorkspaceProps}){
  return <WorkspaceProvider {...workspace}><SidebarDrawer sidebar={<>
-    <Link href="/" className="side-brand">
-      <Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO — Professional Mosque Management Platform — Masjid Makmur, Adaptif dan Berdaya" width={210} height={205} className="brand-mark-large" unoptimized />
-    </Link>
+    <MosqueSidebarBrand mosqueId={mosqueId}/>
     <div className="side-divider"/>
     <div className="side-caption">MANAJEMEN MASJID</div>
     <EnterpriseNavigation />

@@ -12,12 +12,19 @@ export async function saveWorkspace(mosqueId:string,kind:string,input:ModuleData
   const attached=attachment?.get('photo'),photo=attached instanceof File&&attached.size?attached:undefined;
   if(photo){
    const error=checkDkmPhoto(photo.size,photo.type,new Uint8Array(await photo.arrayBuffer()));
-   if(error||kind!=='dkm')return {ok:false,message:error||'Foto hanya untuk Pengurus DKM.'};
+   if(error||!['dkm','profil'].includes(kind))return {ok:false,message:error||'Gambar hanya untuk Pengurus DKM atau logo Masjid.'};
    if(!dkmDriveConfigured())return {ok:false,message:'Unggah Google Drive belum aktif. Biodata dapat disimpan tanpa foto.'};
   }
   if(recordId&&kind==='dkm'){const current=await dataRpc<{records:ModuleRecord[]}>('mp_workspace',{p_mosque:mosqueId});const previous=current.records.find(row=>row.id===recordId&&row.kind==='dkm');if(typeof previous?.data.photoId==='string')checked.data.photoId=previous.data.photoId;}
   const result=await dataRpc<{record?:ModuleRecord;settings?:WorkspaceSettings}>('mp_save_record',{p_mosque:mosqueId,p_kind:kind,p_data:checked.data,p_id:recordId||null});
   let message='Data Masjid berhasil disimpan.';
+  if(photo&&kind==='profil'){
+   try{
+    const photoId=await storeDkmPhoto(photo,mosqueId,mosqueId);
+    const updated=await dataRpc<{settings:WorkspaceSettings}>('mp_set_mosque_logo',{p_mosque:mosqueId,p_photo:photoId});
+    result.settings=updated.settings;message='Profile Masjid dan logo berhasil disimpan.';
+   }catch{message='Profile Masjid tersimpan. Logo belum berhasil ditautkan; silakan coba unggah kembali.';}
+  }
   if(photo&&result.record){
    try{
     const photoId=await storeDkmPhoto(photo,mosqueId,result.record.id);
