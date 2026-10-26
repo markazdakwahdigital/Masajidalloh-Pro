@@ -1,6 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element -- Temporary blob photos are local previews and cannot use image optimization. */
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { ENTERPRISE_MENU } from '@/lib/enterprise-menu';
 import { MODULE_FIELDS, hasModule, dateKey, type ModuleData, type ModuleRecord, type WorkspaceSettings } from '@/lib/mosque-workspace';
 import {checkDkmPhoto} from '@/lib/dkm-photo';
@@ -44,7 +45,7 @@ function ModuleForm({kind,settings,editing,onSaved}:{kind:string;settings:Worksp
  {message&&<p className="span-two brochure-note" role="status">{message}</p>}
  </form>;
 }
-export default function EnterpriseModules({preview:legacyPreview=false}:{preview?:boolean}){
+export default function EnterpriseModules({preview:legacyPreview=false,mosqueId}:{preview?:boolean;mosqueId?:string}){
  const {settings,records,plan,preview,canWrite,archive}=useWorkspace();
  const [active,setActive]=useState('');
  const [editing,setEditing]=useState<ModuleRecord|undefined>(),[feedback,setFeedback]=useState('');
@@ -57,6 +58,7 @@ export default function EnterpriseModules({preview:legacyPreview=false}:{preview
  return <section className="brochure-panel enterprise-module" id={active} key={active}>
  <div className="brochure-panel-heading"><span className="gold-tile"><MenuIcon index={menu.icon}/></span><h2>{menu.label}</h2><span className="brochure-period">{plan}</span></div>
  {preview&&<p className="brochure-note">Data pratinjau sementara. Tidak tersimpan ke akun Masjid dan akan hilang ketika halaman dimuat ulang.</p>}
+ {active==='setting'&&!preview&&mosqueId&&<section className="admin-account-tools"><h3>Keamanan &amp; Admin Masjid</h3><p>Setiap Masjid dapat mempunyai maksimal 3 Admin: 1 Admin utama dan 2 Admin tambahan.</p><p><Link href="/setup-password">Ubah Kata Sandi Aplikasi</Link> · <Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin Masjid</Link> · <Link href="/forgot-password">Lupa Kata Sandi</Link></p><p>Perubahan akses dan waktu perubahan kata sandi tercatat untuk Admin platform. Isi kata sandi tidak dapat dilihat.</p></section>}
  {active==='keuangan'&&<p className="brochure-note">Catat pemasukan lain dan pengeluaran. Donasi, Infaq uang, Zakat, serta Wakaf uang dihitung dari menu asalnya; jangan dicatat ulang di sini.</p>}
  {active==='infaq'&&<p className="brochure-note">Barang, Makanan, Minuman, dan Lainnya dicatat sebagai penerimaan non-uang; tidak menambah saldo kas.</p>}
  {feedback&&<p role="status">{feedback}</p>}

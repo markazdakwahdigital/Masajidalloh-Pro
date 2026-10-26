@@ -9,8 +9,8 @@ export async function setPassword(formData: FormData) {
     redirect('/setup-password?error=invalid');
   const client=await createSupabaseServerClient();
   const {data:{user},error}=await client.auth.getUser();
-  if(error||!user) redirect('/login');
+  if(error||!user?.email_confirmed_at) redirect('/login');
   const result=await client.auth.updateUser({password});
   if(result.error) redirect('/setup-password?error=failed');
-  redirect('/dashboard');
+  redirect('/dashboard?password=updated');
 }

@@ -11,7 +11,7 @@ export default function TenantControls({tenant:t}:{tenant:Tenant}){
  <label>Nilai baru<select name="value" required value={value} onChange={e=>{setValue(e.target.value);setReview(false);setError('');}}>{action==='admin'&&<option value="">Pilih anggota terverifikasi</option>}{options.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
  {action==='archive'&&<p>Tenant dipindahkan ke daftar arsip. Akses tetap ditutup dan seluruh data disimpan. Tenant dapat dipulihkan.</p>}
  {action==='restore'&&<p>Tenant dikembalikan ke daftar utama dengan status Ditangguhkan. Aktifkan kembali secara terpisah jika sudah disetujui.</p>}
- {action==='admin'&&<p>Admin baru harus sudah menjadi anggota aktif dengan email terverifikasi. Setelah diganti, Admin lama menjadi pembaca. Tetap hanya satu Admin.</p>}
+ {action==='admin'&&<p>Admin baru harus sudah menjadi anggota aktif dengan email terverifikasi. Setelah diganti, Admin lama menjadi pembaca. Admin tambahan lain tetap mengikuti daftar akses, dengan maksimum total 3 Admin.</p>}
  {action==='status'&&<p>Penangguhan menutup akses Admin dan pembaca. Data tetap tersimpan. Aktivasi kembali membuka akses sesuai keanggotaan.</p>}
  {action==='plan'&&<p>Fitur mengikuti paket baru. Data fitur di luar paket tetap tersimpan dan muncul kembali saat paket mengizinkannya. Pembayaran tidak diproses di sini.</p>}
  {!t.archivedAt&&t.status!=='SUSPENDED'&&<p>Untuk mengarsipkan tenant, ubah status menjadi Ditangguhkan terlebih dahulu.</p>}

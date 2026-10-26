@@ -34,6 +34,6 @@ export default async function MosqueDashboard({params}:{params:Promise<{mosqueId
  const chair=canWrite?(currentChair?{id:currentChair.id,name:String(currentChair.data.name),photoId:currentChair.data.photoId}:null):publicChair as {id:string;name:string;photoId?:string}|null;
 
  return <DashboardFrame overview workspace={{...workspace,readOnly:!canWrite,photoUploadEnabled:canWrite&&dkmDriveConfigured(),...(canWrite?{saveAction:saveWorkspace.bind(null,mosqueId),archiveAction:archiveRecord.bind(null,mosqueId)}:{})}} mosqueName={workspace.name} mosqueId={mosqueId} profileName={chair?.name||'Ketua DKM belum diisi'} profileRole="Ketua DKM" profileRecordId={chair?.id} profileImageSrc={chairPhotoUrl(mosqueId,chair?.photoId)} actions={canWrite?<><Link href="/masjid">Direktori Masjid</Link><PublicDashboardShare mosqueId={mosqueId} name={workspace.name}/><Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin</Link><form action={logout}><button type="submit">Keluar</button></form></>:undefined}>
- <WorkspaceRefresh/><BrochureOverview mosqueId={mosqueId}/><EnterpriseModules/>
+ <WorkspaceRefresh/><BrochureOverview mosqueId={mosqueId}/><EnterpriseModules mosqueId={mosqueId}/>
  </DashboardFrame>;
 }
