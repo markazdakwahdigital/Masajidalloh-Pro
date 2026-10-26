@@ -16,6 +16,8 @@ export default defineConfig({
     env: {
       ASSETS: bindings.assets(),
       DATABASE_URL: bindings.secret(),
+      DKM_DRIVE_WEB_APP_URL: bindings.secret(),
+      DKM_DRIVE_SIGNING_KEY: bindings.secret(),
       NEXT_PUBLIC_SUPABASE_URL: bindings.secret(),
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: bindings.secret(),
     },
