@@ -1,10 +1,10 @@
-import {createSupabaseServerClient} from '@/lib/supabase/server';
+import {publicDataClient} from '@/lib/server/public-data';
 import {readDkmPhoto} from '@/lib/server/dkm-drive';
 export const dynamic='force-dynamic';
 export async function GET(_request:Request,{params}:{params:Promise<{mosqueId:string}>}){
  try{
   const {mosqueId}=await params;if(!/^[\da-f-]{36}$/i.test(mosqueId))throw new Error();
-  const client=await createSupabaseServerClient();const {data,error}=await client.rpc('mp_chair_profile',{p_mosque:mosqueId});
+  const client=publicDataClient();const {data,error}=await client.rpc('mp_chair_profile',{p_mosque:mosqueId});
   const chair=data as {id?:string;photoId?:string}|null;
   if(error||!chair?.id||!chair.photoId)throw new Error();
   const photo=await readDkmPhoto(mosqueId,chair.id,chair.photoId);
