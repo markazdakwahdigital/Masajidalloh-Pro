@@ -4,31 +4,20 @@ import { MenuIcon } from './enterprise-navigation';
 import {useWorkspace} from './workspace-provider';
 import MosqueAccounts from './mosque-accounts';
 import MosqueQr from './mosque-qr';
+import {usePrayer} from './prayer-provider';
+import PrayerLocationControls from './prayer-location-controls';
+import {PRAYER_NAMES,zoneLabel} from '@/lib/prayer-times';
 import {summarize,dateKey,hasModule} from '@/lib/mosque-workspace';
 
 function Heading({icon,title,children}:{icon:number;title:string;children?:React.ReactNode}){
  return <div className="brochure-panel-heading"><span className="gold-tile"><MenuIcon index={icon}/></span><h2>{title}</h2>{children}</div>;
 }
 function PrayerSchedule(){
- const {records,settings,canWrite}=useWorkspace();
- const configuredCity=String(records.find(row=>row.kind==='shalat')?.data.city||settings.city||'');
- const [city,setCity]=useState('');
- useEffect(()=>{if(configuredCity)setCity(configuredCity);},[configuredCity]);
- const [times,setTimes]=useState<Record<string,string>>({});
- const [status,setStatus]=useState('Pilih kota Masjid untuk melihat jadwal.');
- useEffect(()=>{
-  if(!city)return;
-  const controller=new AbortController();setTimes({});setStatus('Memuat jadwal…');
-  fetch('/api/prayer-times?city='+encodeURIComponent(city),{signal:controller.signal})
-   .then(async response=>{if(!response.ok)throw new Error();return response.json();})
-   .then(data=>{setTimes(data.timings);setStatus('Sumber: AlAdhan · metode Kemenag.');})
-   .catch(()=>{if(!controller.signal.aborted)setStatus('Jadwal belum tersedia. Silakan pilih kota lagi.');});
-  return()=>controller.abort();
- },[city]);
- return <section className="brochure-panel" id="jadwal-hari-ini"><Heading icon={8} title="Jadwal Sholat Hari Ini"/>{canWrite&&<><label className="sr-only" htmlFor="brochure-city">Kota jadwal sholat</label><select id="brochure-city" value={city} onChange={e=>setCity(e.target.value)}><option value="">Pilih kota Masjid</option>{['Jakarta','Bogor','Bandung','Semarang','Yogyakarta','Surabaya','Medan','Makassar','Denpasar','Balikpapan','Jayapura'].map(name=><option key={name}>{name}</option>)}</select></>}{!canWrite&&<p>{city||'Kota belum diatur Admin.'}</p>}<div className="brochure-prayers">{[['☀','Subuh','Fajr'],['☀','Dzuhur','Dhuhr'],['☁','Ashar','Asr'],['☀','Maghrib','Maghrib'],['☾','Isya','Isha']].map(([icon,name,key])=><div key={key}><span aria-hidden="true">{icon}</span><strong>{name}</strong><b>{times[key]||'—'}</b><small>{times[key]?'Jadwal hari ini':'Pilih kota'}</small></div>)}</div><p className="brochure-note" role="status">{status}</p></section>;
+ const prayer=usePrayer();
+ return <section className="brochure-panel" id="jadwal-hari-ini"><Heading icon={8} title="Jadwal Sholat Hari Ini"/><PrayerLocationControls id="brochure-city"/><div className="brochure-prayers">{PRAYER_NAMES.map(([name,key])=><div key={key}><strong>{name}</strong><b>{prayer.timings?.[key]||'—'}</b><small>{zoneLabel(prayer.timeZone)}</small></div>)}</div><p className="brochure-note" role="status">{prayer.status}</p></section>;
 }
 export default function BrochureOverview({programCount,programs=[],mosqueId}:{mosqueId?:string;programCount?:number;programs?:Array<{id:string;title:string;date:string}>}){
- const {records,plan,settings,preview}=useWorkspace();
+ const {records,plan,settings}=useWorkspace();
  const [today,setToday]=useState('');
  useEffect(()=>{const refresh=()=>setToday(dateKey(new Date(),settings.timezone));refresh();const timer=setInterval(refresh,60000);return()=>clearInterval(timer);},[settings.timezone]);
  const totals=summarize(records,plan,today);
@@ -55,7 +44,6 @@ export default function BrochureOverview({programCount,programs=[],mosqueId}:{mo
  const financial=hasModule(plan,'donasi');
  return <>
  <section className="brochure-hero"><span className="brochure-hero-icon"><MenuIcon index={6}/></span><div><h1>Dashboard Pengelola Masjid</h1><p>{settings.name||'Kelola Masjid dengan data, kolaborasi dan teknologi'}</p>{settings.vision&&<p className="mosque-vision">{settings.vision}</p>}</div><blockquote>“Memakmurkan Masjid,<br/>Membangun Umat,<br/>Meraih Ridha Allah”</blockquote></section>
- <p className="brochure-note dashboard-source-note">Paket {plan} · Ringkasan hanya berasal dari input menu {preview?'pratinjau':'Masjid'} yang tercatat. Hari ini mengikuti zona waktu {settings.timezone||'Asia/Jakarta'}.</p>
  <div className="brochure-stats">{cards.map(card=><article className={'brochure-stat '+card.tone} key={card.title}><span className="brochure-stat-orb"><MenuIcon index={card.icon}/></span><div><span>{card.title}</span><strong>{card.value}</strong></div><p>{card.detail||(card.value==='—'?'Belum ada data':'Dari data input yang tercatat')}</p></article>)}</div>
  <section className="brochure-panel mosque-donation-accounts"><Heading icon={3} title="Rekening Donasi, Infaq & Shodaqoh"/><MosqueAccounts/></section>
  <div className="brochure-grid">

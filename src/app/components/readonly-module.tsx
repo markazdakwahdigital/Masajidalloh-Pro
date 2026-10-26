@@ -6,7 +6,7 @@ import MosqueAccounts from './mosque-accounts';
 export default function ReadonlyModule({kind}:{kind:string}){
  const {records,settings}=useWorkspace();const menu=ENTERPRISE_MENU.find(m=>m.id===kind);if(!menu)return null;
  const kinds=kind==='profil'?['dkm']:[kind];const rows=records.filter(r=>kinds.includes(r.kind));
- return <section className="brochure-panel enterprise-module" id={kind}><h2>{menu.label} · Laporan</h2><p className="brochure-note">Laporan dari data yang diinput Admin Masjid. Anda memiliki akses membaca.</p>
+ return <section className="brochure-panel enterprise-module" id={kind}><h2>{menu.label} · Laporan</h2>
  {['profil','setting'].includes(kind)&&<dl className="reader-details">{MODULE_FIELDS[kind].filter(f=>Object.hasOwn(settings,f.key)).map(f=><div key={f.key}><dt>{f.label}</dt><dd>{String(settings[f.key as keyof typeof settings]||'—')}</dd></div>)}</dl>}
  {kind==='profil'&&<><h3>Rekening Bank &amp; E-wallet Masjid</h3><MosqueAccounts/></>}
  {kind==='profil'&&<h3>Pengurus Masjid</h3>}

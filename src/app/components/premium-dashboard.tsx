@@ -5,9 +5,10 @@ import SidebarDrawer from './sidebar-drawer';
 import WorkspaceProvider, {type WorkspaceProps} from './workspace-provider';
 import SidebarContact from './sidebar-contact';
 import MosqueSidebarBrand from './mosque-sidebar-brand';
+import PrayerProvider from './prayer-provider';
 
 export function DashboardFrame({children,mosqueName,overview=false,actions,profileName,profileRole,profileImageSrc,profileRecordId,mosqueId,searchItems=[],workspace={}}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode;profileName?:string;profileRole?:string;profileImageSrc?:string;profileRecordId?:string;mosqueId?:string;searchItems?:Array<{label:string;href:string}>;workspace?:WorkspaceProps}){
- return <WorkspaceProvider {...workspace}><SidebarDrawer sidebar={<>
+ return <WorkspaceProvider {...workspace}><PrayerProvider><SidebarDrawer sidebar={<>
     <MosqueSidebarBrand mosqueId={mosqueId}/>
     <div className="side-divider"/>
     <div className="side-caption">MANAJEMEN MASJID</div>
@@ -20,7 +21,7 @@ export function DashboardFrame({children,mosqueName,overview=false,actions,profi
     <main className="premium-content">{children}</main>
     <footer className="premium-footer">MASAJIDALLOH PRO · Professional Mosque Management Platform · Developed by MARKAZ DAKWAH DIGITAL</footer>
    </div>
-  </SidebarDrawer></WorkspaceProvider>;
+  </SidebarDrawer></PrayerProvider></WorkspaceProvider>;
 }
 export function Panel({icon,title,sub,children,id}:{icon:string,title:string,sub?:string,children:ReactNode,id?:string}){
  return <section className="premium-panel" id={id}><div className="panel-heading"><span className="panel-icon">{icon}</span><div><h2>{title}</h2>{sub&&<p>{sub}</p>}</div></div>{children}</section>;
