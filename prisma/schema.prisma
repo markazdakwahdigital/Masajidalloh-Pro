@@ -121,6 +121,8 @@ model TenantApplication {
   contactName String
   email       String
   whatsapp    String
+  mosqueEmail String?
+  mosqueWhatsapp String?
   plan        String    @default("BASIC")
   status      String    @default("PENDING")
   submittedAt DateTime  @default(now())

@@ -25,8 +25,9 @@ export default async function Register({searchParams}:{searchParams:Promise<{pak
     <label>Kota/kabupaten<input name="city" minLength={3} maxLength={100} required placeholder="Kota atau kabupaten"/></label>
     <label>Alamat Masjid<textarea name="address" required minLength={10} maxLength={500} rows={3} placeholder="Alamat lengkap Masjid"/></label>
     <label>Nama penanggung jawab<input name="contactName" minLength={3} maxLength={120} required placeholder="Nama pengurus yang mendaftar"/></label>
-    <label>Email pengurus<input name="email" type="email" value={user?.email||''} readOnly/></label>
-    <label>WhatsApp pengurus<input name="whatsapp" type="tel" minLength={9} maxLength={22} required placeholder="08... atau +62..."/></label>
+    <label>Email Masjid<input name="mosqueEmail" type="email" maxLength={254} required autoComplete="off" placeholder="Email Masjid"/></label>
+    <label>WhatsApp Pengurus<input name="whatsapp" type="tel" minLength={9} maxLength={22} required placeholder="08... atau +62..."/></label>
+    <label>WhatsApp Masjid<input name="mosqueWhatsapp" type="tel" minLength={9} maxLength={22} required placeholder="Nomor WhatsApp resmi Masjid"/></label>
     <label>Paket yang diminati<select name="plan" defaultValue={chosen}>{TENANT_PLANS.map(p=><option key={p.id} value={p.id}>{p.name} — {p.price}{p.available?'':' (pengajuan minat saja)'}</option>)}</select></label>
     <label className="tenant-honeypot" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off"/></label>
     <p className="tenant-consent">Dengan mengirim permohonan, Anda menyetujui informasi kontak digunakan untuk proses verifikasi tenant. Pendaftaran tidak otomatis mengaktifkan akun atau membuat tagihan.</p>
