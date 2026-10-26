@@ -7,7 +7,7 @@ import SidebarDrawer from './sidebar-drawer';
 import WorkspaceProvider, {type WorkspaceProps} from './workspace-provider';
 import SidebarContact from './sidebar-contact';
 
-export function DashboardFrame({children,mosqueName,overview=false,actions,profileName,profileRole,searchItems=[],workspace={}}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode;profileName?:string;profileRole?:string;searchItems?:Array<{label:string;href:string}>;workspace?:WorkspaceProps}){
+export function DashboardFrame({children,mosqueName,overview=false,actions,profileName,profileRole,profileImageSrc,profileRecordId,mosqueId,searchItems=[],workspace={}}:{children:ReactNode;mosqueName?:string;overview?:boolean;actions?:ReactNode;profileName?:string;profileRole?:string;profileImageSrc?:string;profileRecordId?:string;mosqueId?:string;searchItems?:Array<{label:string;href:string}>;workspace?:WorkspaceProps}){
  return <WorkspaceProvider {...workspace}><SidebarDrawer sidebar={<>
     <Link href="/" className="side-brand">
       <Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO — Professional Mosque Management Platform — Masjid Makmur, Adaptif dan Berdaya" width={210} height={205} className="brand-mark-large" unoptimized />
@@ -18,7 +18,7 @@ export function DashboardFrame({children,mosqueName,overview=false,actions,profi
     <SidebarContact/>
    </>}>
    <div className="premium-main">
-    <ControlToolbar mosqueName={mosqueName} profileName={profileName} profileRole={profileRole} searchItems={searchItems} backHref={!overview?'/dashboard':undefined} />
+    <ControlToolbar mosqueName={mosqueName} profileName={profileName} profileRole={profileRole} profileImageSrc={profileImageSrc} profileRecordId={profileRecordId} mosqueId={mosqueId} searchItems={searchItems} backHref={!overview?'/dashboard':undefined} />
     {actions&&<div className="mdd-top-actions">{actions}</div>}
     <main className="premium-content">{children}</main>
     <footer className="premium-footer">MASAJIDALLOH PRO · Professional Mosque Management Platform · Developed by MARKAZ DAKWAH DIGITAL</footer>

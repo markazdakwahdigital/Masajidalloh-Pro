@@ -9,6 +9,7 @@ import EnterpriseModules from '@/app/components/enterprise-modules';
 import WorkspaceRefresh from '@/app/components/workspace-refresh';
 import {saveWorkspace,archiveRecord} from './workspace-actions';
 import {dkmDriveConfigured} from '@/lib/server/dkm-drive';
+import {selectChair,chairPhotoUrl} from '@/lib/chair-profile';
 import {logout} from '@/app/login/actions';
 export const dynamic='force-dynamic';
 export default async function MosqueDashboard({params}:{params:Promise<{mosqueId:string}>}){
@@ -18,7 +19,11 @@ export default async function MosqueDashboard({params}:{params:Promise<{mosqueId
  if(user?.email_confirmed_at){try{workspace=await dataRpc('mp_workspace',{p_mosque:mosqueId});}catch{/* Non-admins receive only the public projection. */}}
  if(!workspace){try{workspace=await publicWorkspace(mosqueId);}catch{return <main className="auth-page"><section className="auth-card"><h1>Dashboard Masjid belum tersedia</h1><p>Masjid belum aktif atau sedang ditangguhkan.</p><Link href="/">Kembali</Link></section></main>;}}
  const canWrite=workspace.canWrite;
- return <DashboardFrame overview workspace={{...workspace,readOnly:!canWrite,photoUploadEnabled:canWrite&&dkmDriveConfigured(),...(canWrite?{saveAction:saveWorkspace.bind(null,mosqueId),archiveAction:archiveRecord.bind(null,mosqueId)}:{})}} mosqueName={workspace.name} profileName={canWrite?String(user?.user_metadata?.name||'Admin Masjid'):'Pengunjung'} profileRole={canWrite?'Admin Masjid':'Laporan Publik'} actions={canWrite?<><Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin</Link><form action={logout}><button type="submit">Keluar</button></form></>:<Link href="/login">Login Admin</Link>}>
+ const currentChair=selectChair(workspace.records);
+ const {data:publicChair}=await client.rpc('mp_chair_profile',{p_mosque:mosqueId});
+ const chair=canWrite?(currentChair?{id:currentChair.id,name:String(currentChair.data.name),photoId:currentChair.data.photoId}:null):publicChair as {id:string;name:string;photoId?:string}|null;
+
+ return <DashboardFrame overview workspace={{...workspace,readOnly:!canWrite,photoUploadEnabled:canWrite&&dkmDriveConfigured(),...(canWrite?{saveAction:saveWorkspace.bind(null,mosqueId),archiveAction:archiveRecord.bind(null,mosqueId)}:{})}} mosqueName={workspace.name} mosqueId={mosqueId} profileName={chair?.name||'Ketua DKM belum diisi'} profileRole="Ketua DKM" profileRecordId={chair?.id} profileImageSrc={chairPhotoUrl(mosqueId,chair?.photoId)} actions={canWrite?<><Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin</Link><form action={logout}><button type="submit">Keluar</button></form></>:<Link href="/login">Login Admin</Link>}>
  <WorkspaceRefresh/><BrochureOverview/><EnterpriseModules/>
  </DashboardFrame>;
 }

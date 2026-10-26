@@ -2,8 +2,10 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import {useWorkspace} from './workspace-provider';
+import {selectChair,chairPhotoUrl} from '@/lib/chair-profile';
 type Result = {label:string;href:string};
-type Props = {mosqueName?:string;profileName?:string;profileRole?:string;logo?:string;searchItems:Result[];logout?:boolean;backHref?:string};
+type Props = {mosqueName?:string;profileName?:string;profileRole?:string;profileImageSrc?:string;profileRecordId?:string;mosqueId?:string;logo?:string;searchItems:Result[];logout?:boolean;backHref?:string};
 const CITY_OPTIONS = [
  {name:'Bogor',tz:'Asia/Jakarta'},{name:'Jakarta',tz:'Asia/Jakarta'},{name:'Bandung',tz:'Asia/Jakarta'},
  {name:'Semarang',tz:'Asia/Jakarta'},{name:'Yogyakarta',tz:'Asia/Jakarta'},{name:'Surabaya',tz:'Asia/Jakarta'},
@@ -23,7 +25,13 @@ function dateParts(d:Date,tz:string){
   key:new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d)
  };
 }
-export default function ControlToolbar({mosqueName,profileName,profileRole,searchItems,logout,backHref}:Props){
+export default function ControlToolbar({mosqueName,profileName,profileRole,profileImageSrc,profileRecordId,mosqueId,searchItems,logout,backHref}:Props){
+ const {records,canWrite,preview}=useWorkspace();const chair=canWrite||preview?selectChair(records):undefined;
+ const shownName=chair?String(chair.data.name):mosqueId&&canWrite?'Ketua DKM belum diisi':profileName;
+ const shownRole=mosqueId||chair?'Ketua DKM':profileRole;
+ const photo=mosqueId&&canWrite?(chair?(chairPhotoUrl(mosqueId,chair.data.photoId)||(chair.id===profileRecordId?profileImageSrc:undefined)):undefined):profileImageSrc;
+ const [failedPhoto,setFailedPhoto]=useState('');
+ const hasPhoto=Boolean(photo&&photo!==failedPhoto);
  const [now,setNow]=useState<Date|null>(null);
  const [city,setCity]=useState('');
  const [timings,setTimings]=useState<Record<string,string>|null>(null);
@@ -55,7 +63,7 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
   return()=>{live=false;controller.abort();};
  },[city,dates?.key]);
  const results=useMemo(()=>!q.trim()?[]:searchItems.filter(x=>x.label.toLocaleLowerCase('id').includes(q.trim().toLocaleLowerCase('id'))).slice(0,7),[q,searchItems]);
- const initial=(profileName||'DKM').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
+ const initial=(shownName||'DKM').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
  return <header className="mdd-toolbar">
    <div className="mdd-compact-brand"><Image src="/brand/logo.webp?v=3" alt="MASAJIDALLOH PRO" width={40} height={40} unoptimized/><span>MASAJIDALLOH <b>PRO</b></span></div>
    <div className="mdd-search">
@@ -81,10 +89,10 @@ export default function ControlToolbar({mosqueName,profileName,profileRole,searc
    </div>
    <div className="mdd-profile">
      <button type="button" className="mdd-profile-toggle" aria-expanded={openProfile} onClick={()=>setOpenProfile(!openProfile)}>
-       <span className="mdd-avatar" aria-label="Avatar inisial; foto profil belum tersedia">{initial}</span>
-       <span className="mdd-profile-copy"><strong>{profileName||'Belum ditetapkan'}</strong><small>{profileRole||'Ketua DKM · belum ditetapkan'}</small></span><span aria-hidden="true">⌄</span>
+       <span className="mdd-avatar">{hasPhoto?<Image src={photo!} alt={'Foto Ketua DKM: '+shownName} width={40} height={40} unoptimized onError={()=>setFailedPhoto(photo!)}/>:<span aria-label="Inisial Ketua DKM; foto belum tersedia">{initial}</span>}</span>
+       <span className="mdd-profile-copy"><strong>{shownName||'Ketua DKM belum diisi'}</strong><small>{shownRole||'Ketua DKM'}</small></span><span aria-hidden="true">⌄</span>
      </button>
-     {openProfile&&<div className="mdd-popup mdd-profile-popup"><strong>{profileName||'Ketua DKM belum ditetapkan'}</strong><p>{profileRole||'Identitas dan foto Ketua DKM belum tersedia dalam profil Masjid.'}</p><p>Foto profil akan ditampilkan setelah fitur unggah foto pengurus tersedia.</p>{backHref&&<Link href={backHref}>← Daftar Masjid</Link>}{logout&&<Link href="/dashboard">Dashboard saya</Link>}</div>}
+     {openProfile&&<div className="mdd-popup mdd-profile-popup"><strong>{shownName||'Ketua DKM belum diisi'}</strong><p>{shownRole||'Ketua DKM'}</p>{hasPhoto?<Image className="mdd-chair-photo" src={photo!} alt={'Foto Ketua DKM: '+shownName} width={80} height={80} unoptimized onError={()=>setFailedPhoto(photo!)}/>:<p>{photo?'Foto Ketua DKM belum dapat dimuat.':'Foto Ketua DKM belum diunggah.'}</p>}{backHref&&<Link href={backHref}>← Daftar Masjid</Link>}{logout&&<Link href="/dashboard">Dashboard saya</Link>}</div>}
    </div>
   </header>;
 }

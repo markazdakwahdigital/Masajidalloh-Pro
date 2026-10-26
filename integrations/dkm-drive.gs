@@ -24,17 +24,28 @@ function doPost(e){
  if(mismatch)return answer({ok:false});
  const data=JSON.parse(envelope.payload),uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  if(!uuid.test(data.mosqueId)||!uuid.test(data.recordId)||!uuid.test(data.nonce)||!Number.isFinite(data.timestamp)||Math.abs(Date.now()-data.timestamp)>300000)return answer({ok:false});
+ if(!lock.tryLock(10000))return answer({ok:false});
+ const cache=CacheService.getScriptCache();if(cache.get(data.nonce))return answer({ok:false});cache.put(data.nonce,'1',600);
+ const root=DriveApp.getFolderById(props.getProperty('DKM_DRIVE_FOLDER_ID'));
+ if(root.getName()!=='Foto DKM Masjidalloh'||root.getOwner().getEmail()!=='markazdakwahdigital.01@gmail.com')return answer({ok:false});
+ const folders=root.getFoldersByName(data.mosqueId);
+ if(data.operation==='read'){
+  if(!folders.hasNext()||typeof data.fileId!=='string'||!/^[-\w]{10,200}$/.test(data.fileId))return answer({ok:false});
+  const folder=folders.next(),file=DriveApp.getFileById(data.fileId),parents=file.getParents();let belongs=false;
+  while(parents.hasNext()){if(parents.next().getId()===folder.getId())belongs=true;}
+  const filename=new RegExp('^'+data.recordId+'(?:-[0-9a-f-]{36})?\\.(jpg|png|webp)$','i');
+  if(!belongs||file.isTrashed()||!filename.test(file.getName())||file.getSize()>2*1024*1024)return answer({ok:false});
+  const mime=file.getMimeType();if(!['image/jpeg','image/png','image/webp'].includes(mime))return answer({ok:false});
+  return answer({ok:true,mimeType:mime,base64:Utilities.base64Encode(file.getBlob().getBytes())});
+ }
+ if(data.operation&&data.operation!=='upload')return answer({ok:false});
  const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[data.mimeType];if(!ext)return answer({ok:false});
  const bytes=Utilities.base64Decode(data.base64);
  if(!bytes.length||bytes.length>2*1024*1024)return answer({ok:false});
  const b=i=>(bytes[i]+256)%256;
  const valid=data.mimeType==='image/jpeg'?b(0)===255&&b(1)===216&&b(2)===255:data.mimeType==='image/png'?b(0)===137&&b(1)===80&&b(2)===78&&b(3)===71&&b(4)===13&&b(5)===10&&b(6)===26&&b(7)===10:String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP';
  if(!valid)return answer({ok:false});
- if(!lock.tryLock(10000))return answer({ok:false});
- const cache=CacheService.getScriptCache();if(cache.get(data.nonce))return answer({ok:false});cache.put(data.nonce,'1',600);
- const root=DriveApp.getFolderById(props.getProperty('DKM_DRIVE_FOLDER_ID'));
- if(root.getName()!=='Foto DKM Masjidalloh'||root.getOwner().getEmail()!=='markazdakwahdigital.01@gmail.com')return answer({ok:false});
- const folders=root.getFoldersByName(data.mosqueId),folder=folders.hasNext()?folders.next():root.createFolder(data.mosqueId);
+ const folder=folders.hasNext()?folders.next():root.createFolder(data.mosqueId);
  const name=data.recordId+'-'+data.nonce+'.'+ext,existing=folder.getFilesByName(name);
  const file=existing.hasNext()?existing.next():folder.createFile(Utilities.newBlob(bytes,data.mimeType,name));
  return answer({ok:true,fileId:file.getId()});
