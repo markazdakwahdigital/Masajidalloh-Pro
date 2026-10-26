@@ -19,7 +19,7 @@ export async function generateMetadata({params}:{params:Promise<{mosqueId:string
  const {mosqueId}=await params;
  try{const {data,error}=await publicDataClient().rpc('mp_public_mosques',{p_mosque:mosqueId,p_limit:1});const m=data?.items?.[0];if(error||!m)return {title:'Dashboard Masjid belum tersedia',robots:{index:false,follow:false}};
  const title=m.name+' | MASAJIDALLOH PRO',description='Dashboard dan laporan publik '+m.name+'. Terbuka untuk Jamaah dan masyarakat tanpa login.',url='/dashboard/masjid/'+mosqueId;
- return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:'website',images:[{url:'/brand/share-logo-v3.png',width:640,height:640,alt:'MASAJIDALLOH PRO'}]},twitter:{card:'summary',title,description,images:['/brand/share-logo-v3.png']}};
+ return {title,description,manifest:'/api/masjid/'+mosqueId+'/manifest',applicationName:m.name,appleWebApp:{capable:true,statusBarStyle:'default',title:m.name},alternates:{canonical:url},openGraph:{title,description,url,type:'website',images:[{url:'/brand/share-logo-v3.png',width:640,height:640,alt:'MASAJIDALLOH PRO'}]},twitter:{card:'summary',title,description,images:['/brand/share-logo-v3.png']}};
  }catch{return {title:'Dashboard Masjid',robots:{index:false,follow:false}};}
 }
 export default async function MosqueDashboard({params}:{params:Promise<{mosqueId:string}>}){
@@ -34,6 +34,6 @@ export default async function MosqueDashboard({params}:{params:Promise<{mosqueId
  const chair=canWrite?(currentChair?{id:currentChair.id,name:String(currentChair.data.name),photoId:currentChair.data.photoId}:null):publicChair as {id:string;name:string;photoId?:string}|null;
 
  return <DashboardFrame overview workspace={{...workspace,readOnly:!canWrite,photoUploadEnabled:canWrite&&dkmDriveConfigured(),...(canWrite?{saveAction:saveWorkspace.bind(null,mosqueId),archiveAction:archiveRecord.bind(null,mosqueId)}:{})}} mosqueName={workspace.name} mosqueId={mosqueId} profileName={chair?.name||'Ketua DKM belum diisi'} profileRole="Ketua DKM" profileRecordId={chair?.id} profileImageSrc={chairPhotoUrl(mosqueId,chair?.photoId)} actions={canWrite?<><Link href="/masjid">Direktori Masjid</Link><PublicDashboardShare mosqueId={mosqueId} name={workspace.name}/><Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin</Link><form action={logout}><button type="submit">Keluar</button></form></>:undefined}>
- <WorkspaceRefresh/><BrochureOverview/><EnterpriseModules/>
+ <WorkspaceRefresh/><BrochureOverview mosqueId={mosqueId}/><EnterpriseModules/>
  </DashboardFrame>;
 }

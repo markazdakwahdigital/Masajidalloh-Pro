@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { MenuIcon } from './enterprise-navigation';
 import {useWorkspace} from './workspace-provider';
 import MosqueAccounts from './mosque-accounts';
+import MosqueQr from './mosque-qr';
 import {summarize,dateKey,hasModule} from '@/lib/mosque-workspace';
 
 function Heading({icon,title,children}:{icon:number;title:string;children?:React.ReactNode}){
@@ -26,7 +27,7 @@ function PrayerSchedule(){
  },[city]);
  return <section className="brochure-panel" id="jadwal-hari-ini"><Heading icon={8} title="Jadwal Sholat Hari Ini"/>{canWrite&&<><label className="sr-only" htmlFor="brochure-city">Kota jadwal sholat</label><select id="brochure-city" value={city} onChange={e=>setCity(e.target.value)}><option value="">Pilih kota Masjid</option>{['Jakarta','Bogor','Bandung','Semarang','Yogyakarta','Surabaya','Medan','Makassar','Denpasar','Balikpapan','Jayapura'].map(name=><option key={name}>{name}</option>)}</select></>}{!canWrite&&<p>{city||'Kota belum diatur Admin.'}</p>}<div className="brochure-prayers">{[['☀','Subuh','Fajr'],['☀','Dzuhur','Dhuhr'],['☁','Ashar','Asr'],['☀','Maghrib','Maghrib'],['☾','Isya','Isha']].map(([icon,name,key])=><div key={key}><span aria-hidden="true">{icon}</span><strong>{name}</strong><b>{times[key]||'—'}</b><small>{times[key]?'Jadwal hari ini':'Pilih kota'}</small></div>)}</div><p className="brochure-note" role="status">{status}</p></section>;
 }
-export default function BrochureOverview({programCount,programs=[]}:{programCount?:number;programs?:Array<{id:string;title:string;date:string}>}){
+export default function BrochureOverview({programCount,programs=[],mosqueId}:{mosqueId?:string;programCount?:number;programs?:Array<{id:string;title:string;date:string}>}){
  const {records,plan,settings,preview}=useWorkspace();
  const [today,setToday]=useState('');
  useEffect(()=>{const refresh=()=>setToday(dateKey(new Date(),settings.timezone));refresh();const timer=setInterval(refresh,60000);return()=>clearInterval(timer);},[settings.timezone]);
@@ -63,5 +64,7 @@ export default function BrochureOverview({programCount,programs=[]}:{programCoun
  {hasModule(plan,'shalat')&&<PrayerSchedule/>}
  {hasModule(plan,'kegiatan')&&<section className="brochure-panel"><Heading icon={7} title="Agenda & Kegiatan"><a href="#kegiatan">Lihat Semua</a></Heading><div className="brochure-agenda">{agenda.length?agenda.slice(0,5).map(program=><article key={program.id}><span className="agenda-date">{program.date}</span><div><strong>{program.title}</strong><small>Agenda Masjid</small></div><i/></article>):<div className="brochure-empty"><MenuIcon index={7}/><h3>Belum ada agenda</h3><p>Kegiatan Masjid akan ditampilkan dari form Program &amp; Kegiatan.</p><a href="#kegiatan">Input Program &amp; Kegiatan →</a></div>}</div></section>}
  <section className="brochure-panel mosque-officials"><Heading icon={10} title="Pengurus Masjid"/>{records.some(row=>row.kind==='dkm')?<div className="brochure-notifications">{records.filter(row=>row.kind==='dkm').map(row=><article key={row.id}><div><strong>{String(row.data.name)}</strong><small>{String(row.data.position)} · {row.data.active===true?'Aktif':'Tidak aktif'}</small></div></article>)}</div>:<div className="brochure-empty"><h3>Belum ada data Pengurus Masjid</h3><p>Daftar Pengurus akan tampil setelah Admin mengisi data Pengurus Masjid pada menu Profile Masjid.</p></div>}<a href="#profil">Lihat Profile Masjid →</a></section>
- </div></>;
+ </div>
+ {mosqueId&&<MosqueQr mosqueId={mosqueId} name={settings.name||'Masjid'}/>}
+ </>;
 }
