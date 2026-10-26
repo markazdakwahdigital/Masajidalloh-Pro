@@ -6,7 +6,7 @@ type DeferredInstallPrompt = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 };
 
-export default function InstallApp({name='MASAJIDALLOH PRO'}:{name?:string}) {
+export default function InstallApp({name='MASAJIDALLOH PRO',compact=false}:{name?:string;compact?:boolean}) {
   const [event, setEvent] = useState<DeferredInstallPrompt | null>(null);
   const [ios, setIos] = useState(false);
   const [installed, setInstalled] = useState(false);
@@ -24,11 +24,11 @@ export default function InstallApp({name='MASAJIDALLOH PRO'}:{name?:string}) {
     return () => { window.removeEventListener('beforeinstallprompt', onPrompt); window.removeEventListener('appinstalled', onInstalled); };
   }, []);
   if (installed) return null;
-  return <aside className="pwa-install">
-    <div>
+  return <aside className={'pwa-install'+(compact?' pwa-install-compact':'')}>
+    {!compact&&<div>
       <strong>Pasang {name}</strong>
       <p>Buka lebih mudah dari ikon di layar perangkat Anda. Data Masjid tetap memerlukan koneksi internet.</p>
-    </div>
+    </div>}
     {event ? <button type="button" onClick={async () => { try{await event.prompt();await event.userChoice;}catch{setGuide(true);}finally{setEvent(null);} }}>Instal aplikasi</button> :
       <button type="button" onClick={() => setGuide(x => !x)} aria-expanded={guide}>Cara memasang</button>}
     {guide && <p className="pwa-install-guide">{ios ? 'Di Safari, ketuk Bagikan (Share), lalu pilih Tambahkan ke Layar Utama (Add to Home Screen).' : 'Android: di menu Chrome/Edge pilih Instal aplikasi atau Tambahkan ke layar utama. Desktop Chrome/Edge: gunakan ikon instalasi di bilah alamat atau menu browser. Pilihan ini bergantung pada browser dan perangkat.'}</p>}
