@@ -2,9 +2,9 @@
 import Image from 'next/image';
 import {useEffect,useState} from 'react';
 import InstallApp from '@/app/install-app';
-import {publicMosqueUrl} from '@/lib/tenant-public-app';
+import {publicMosqueShareUrl} from '@/lib/tenant-public-app';
 export default function MosqueQr({mosqueId,name}:{mosqueId:string;name:string}){
- const link=publicMosqueUrl(mosqueId),src='/api/masjid/'+mosqueId+'/qr';
+ const link=publicMosqueShareUrl(mosqueId),src='/api/masjid/'+mosqueId+'/qr';
  const [file,setFile]=useState<File|null>(null),[message,setMessage]=useState(''),[failed,setFailed]=useState(false);
  useEffect(()=>{
   const abort=new AbortController();
