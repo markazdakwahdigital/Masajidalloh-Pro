@@ -26,12 +26,12 @@ export function MenuIcon({index}:{index:number}) {
   return <span className="brochure-menu-icon" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><g transform="translate(2 1) scale(.9)"><path d={paths[index]||paths[0]}/></g></svg></span>;
 }
 export default function EnterpriseNavigation() {
-  const {plan}=useWorkspace();
+  const {plan,canExport}=useWorkspace();
   const [active,setActive]=useState('dashboard');
   useEffect(()=>{
     const update=()=>setActive(window.location.hash.slice(1)||'dashboard');
     update(); window.addEventListener('hashchange',update);
     return()=>window.removeEventListener('hashchange',update);
   },[]);
-  return <nav className="enterprise-navigation" aria-label="Menu utama">{ENTERPRISE_MENU.filter(menu=>hasModule(plan,menu.id)).map(menu=><a key={menu.id} href={'#'+menu.id} className={'side-link '+(active===menu.id?'current':'')} aria-current={active===menu.id?'page':undefined} onClick={()=>setActive(menu.id)}><MenuIcon index={menu.icon}/><span>{menu.label}</span></a>)}</nav>;
+  return <nav className="enterprise-navigation" aria-label="Menu utama">{ENTERPRISE_MENU.filter(menu=>hasModule(plan,menu.id)&&(menu.id!=='laporan'||canExport)).map(menu=><a key={menu.id} href={'#'+menu.id} className={'side-link '+(active===menu.id?'current':'')} aria-current={active===menu.id?'page':undefined} onClick={()=>setActive(menu.id)}><MenuIcon index={menu.icon}/><span>{menu.label}</span></a>)}</nav>;
 }

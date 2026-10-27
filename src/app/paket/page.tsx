@@ -10,7 +10,7 @@ export default function PricingPage(){
  <section className="plan-grid">{TENANT_PLANS.map(p=><article className={'plan-card '+(p.id==='BASIC'?'plan-featured':'')} key={p.id}>
   <div className="plan-emblem">{p.id==='BASIC'?'🕌':p.id==='PRO'?'✨':'🏛️'}</div><h2>{p.name.toUpperCase()}</h2><div className="plan-cost">{p.price}</div><p className="plan-period">{p.period}</p><p>{p.description}</p><div className="plan-divider"/>
   {p.intro&&<p><strong>{p.intro}</strong></p>}<ul>{p.benefits.map(b=><li key={b}>✓ {b}</li>)}</ul>
-  <Link className="enterprise-preview-link prototype-button" href={p.id==='BASIC'?'/basic':p.id==='PRO'?'/professional':'/enterprise'} target="_blank" rel="noopener noreferrer">Prototype Aplikasi ↗</Link>
+  <Link className="enterprise-preview-link prototype-button" href={p.id==='BASIC'?'/dashboard/masjid/9d4fc904-3e7c-4824-aaf6-5f5039f25e32#profil':p.id==='PRO'?'/professional':'/dashboard/masjid/c41c8876-c089-4605-9831-18b53a434430'} target="_blank" rel="noopener noreferrer">Prototype Aplikasi ↗</Link>
   <Link className="plan-button" href={'/daftar-masjid?paket='+p.id}>Pilih {p.name}</Link>
  </article>)}</section>
  <p style={{textAlign:'center'}}><a className="plan-button" href={CONSULTATION_URL} target="_blank" rel="noopener noreferrer">Konsultasi Gratis ↗</a></p>

@@ -1,13 +1,14 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import type {TenantWorkspace} from '@/lib/server/public-workspace';
 import {checkDkmPhoto} from '@/lib/dkm-photo';
 import { validateModule, hasModule, type PackagePlan, type ModuleData, type ModuleRecord, type WorkspaceSettings } from '@/lib/mosque-workspace';
 export type SaveResult={ok:boolean;message:string;record?:ModuleRecord;settings?:WorkspaceSettings};
-export type WorkspaceProps={plan?:PackagePlan;records?:ModuleRecord[];settings?:WorkspaceSettings;preview?:boolean;photoUploadEnabled?:boolean;readOnly?:boolean;canWrite?:boolean;archiveAction?:(id:string)=>Promise<SaveResult>;saveAction?:(kind:string,data:ModuleData,photo?:FormData,recordId?:string)=>Promise<SaveResult>};
-type State={plan:PackagePlan;records:ModuleRecord[];settings:WorkspaceSettings;preview:boolean;photoUploadEnabled:boolean;canWrite:boolean;save:(kind:string,data:ModuleData,photo?:File,recordId?:string)=>Promise<SaveResult>;archive:(id:string)=>Promise<SaveResult>};
+export type WorkspaceProps={canExport?:boolean;exportAction?:()=>Promise<TenantWorkspace>;plan?:PackagePlan;records?:ModuleRecord[];settings?:WorkspaceSettings;preview?:boolean;photoUploadEnabled?:boolean;readOnly?:boolean;canWrite?:boolean;archiveAction?:(id:string)=>Promise<SaveResult>;saveAction?:(kind:string,data:ModuleData,photo?:FormData,recordId?:string)=>Promise<SaveResult>};
+type State={canExport:boolean;exportAction?:()=>Promise<TenantWorkspace>;plan:PackagePlan;records:ModuleRecord[];settings:WorkspaceSettings;preview:boolean;photoUploadEnabled:boolean;canWrite:boolean;save:(kind:string,data:ModuleData,photo?:File,recordId?:string)=>Promise<SaveResult>;archive:(id:string)=>Promise<SaveResult>};
 const Context=createContext<State|null>(null);
 export function useWorkspace(){const context=useContext(Context);if(!context)throw new Error('Workspace provider missing');return context;}
-export default function WorkspaceProvider({children,plan='BASIC',records:initialRecords=[],settings:initialSettings={},preview=false,photoUploadEnabled=false,readOnly=false,canWrite=false,saveAction,archiveAction}:WorkspaceProps&{children:ReactNode}){
+export default function WorkspaceProvider({children,canExport=false,exportAction,plan='BASIC',records:initialRecords=[],settings:initialSettings={},preview=false,photoUploadEnabled=false,readOnly=false,canWrite=false,saveAction,archiveAction}:WorkspaceProps&{children:ReactNode}){
  const photoUrls=useRef<string[]>([]);
  useEffect(()=>()=>{photoUrls.current.forEach(url=>URL.revokeObjectURL(url));},[]);
  const [records,setRecords]=useState(initialRecords);
@@ -38,5 +39,5 @@ export default function WorkspaceProvider({children,plan='BASIC',records:initial
   try{result=preview?{ok:true,message:'Data pratinjau dihapus.'}:archiveAction?await archiveAction(id):{ok:false,message:'Pilih Masjid terlebih dahulu.'};}catch{return {ok:false,message:'Data belum dapat diarsipkan.'};}
   if(result.ok)setRecords(previous=>previous.filter(row=>row.id!==id));return result;
  }
- return <Context.Provider value={{plan,records,settings,preview,photoUploadEnabled,canWrite:!readOnly&&(preview||canWrite),save,archive}}>{children}</Context.Provider>;
+ return <Context.Provider value={{canExport:!preview&&canExport,exportAction,plan,records,settings,preview,photoUploadEnabled,canWrite:!readOnly&&(preview||canWrite),save,archive}}>{children}</Context.Provider>;
 }

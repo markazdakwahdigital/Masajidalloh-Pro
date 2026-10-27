@@ -13,6 +13,7 @@ import WorkspaceRefresh from '@/app/components/workspace-refresh';
 import {saveWorkspace,archiveRecord} from './workspace-actions';
 import {dkmDriveConfigured} from '@/lib/server/dkm-drive';
 import {selectChair,chairPhotoUrl} from '@/lib/chair-profile';
+import {loadPrivateReport} from '@/app/components/private-report-actions';
 import {logout} from '@/app/login/actions';
 export const dynamic='force-dynamic';
 export async function generateMetadata({params}:{params:Promise<{mosqueId:string}>}):Promise<Metadata>{
@@ -33,7 +34,7 @@ export default async function MosqueDashboard({params}:{params:Promise<{mosqueId
  const {data:publicChair}=await publicDataClient().rpc('mp_chair_profile',{p_mosque:mosqueId});
  const chair=canWrite?(currentChair?{id:currentChair.id,name:String(currentChair.data.name),photoId:currentChair.data.photoId}:null):publicChair as {id:string;name:string;photoId?:string}|null;
 
- return <DashboardFrame overview workspace={{...workspace,readOnly:!canWrite,photoUploadEnabled:canWrite&&dkmDriveConfigured(),...(canWrite?{saveAction:saveWorkspace.bind(null,mosqueId),archiveAction:archiveRecord.bind(null,mosqueId)}:{})}} mosqueName={workspace.name} mosqueId={mosqueId} profileName={chair?.name||'Ketua DKM belum diisi'} profileRole="Ketua DKM" profileRecordId={chair?.id} profileImageSrc={chairPhotoUrl(mosqueId,chair?.photoId)} actions={canWrite?<><Link href="/masjid">Direktori Masjid</Link><PublicDashboardShare mosqueId={mosqueId} name={workspace.name}/><Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin</Link><form action={logout}><button type="submit">Keluar</button></form></>:undefined}>
+ return <DashboardFrame overview workspace={{...workspace,canExport:canWrite,...(canWrite?{exportAction:loadPrivateReport.bind(null,mosqueId)}:{}),readOnly:!canWrite,photoUploadEnabled:canWrite&&dkmDriveConfigured(),...(canWrite?{saveAction:saveWorkspace.bind(null,mosqueId),archiveAction:archiveRecord.bind(null,mosqueId)}:{})}} mosqueName={workspace.name} mosqueId={mosqueId} profileName={chair?.name||'Ketua DKM belum diisi'} profileRole="Ketua DKM" profileRecordId={chair?.id} profileImageSrc={chairPhotoUrl(mosqueId,chair?.photoId)} actions={canWrite?<><Link href="/masjid">Direktori Masjid</Link><PublicDashboardShare mosqueId={mosqueId} name={workspace.name}/><Link href={'/dashboard/masjid/'+mosqueId+'/admin'}>Kelola Admin</Link><form action={logout}><button type="submit">Keluar</button></form></>:undefined}>
  <WorkspaceRefresh/><BrochureOverview mosqueId={mosqueId}/><EnterpriseModules mosqueId={mosqueId}/>
  </DashboardFrame>;
 }

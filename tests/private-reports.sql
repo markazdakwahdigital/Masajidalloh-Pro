@@ -1,0 +1,31 @@
+BEGIN;
+CREATE TEMP TABLE report_test_results(result jsonb);
+ALTER TABLE pg_temp.report_test_results ENABLE ROW LEVEL SECURITY;
+DO $$
+DECLARE a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); ua uuid;ub uuid;m uuid;other uuid;q jsonb;denied boolean;checks int:=0;
+BEGIN
+ INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES(a,'report-'||a||'@example.invalid',now(),'{}'),(b,'report-'||b||'@example.invalid',now(),'{}');
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);ua:=mp_private.actor();
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',b,'role','authenticated')::text,true);ub:=mp_private.actor();
+ INSERT INTO public."Mosque"(name,slug,status) VALUES('Private report rollback fixture',gen_random_uuid()::text,'ACTIVE') RETURNING id INTO m;
+ INSERT INTO public."Mosque"(name,slug,status) VALUES('Other private report rollback fixture',gen_random_uuid()::text,'ACTIVE') RETURNING id INTO other;
+ INSERT INTO public."MosqueSettings"("mosqueId",plan,data) VALUES(m,'ENTERPRISE','{}');
+ INSERT INTO public."MosqueMembership"("mosqueId","userId",status) VALUES(m,ua,'ACTIVE'),(m,ub,'ACTIVE');
+ INSERT INTO public."MosqueAdmin"("mosqueId","userId") VALUES(m,ua);
+ INSERT INTO public."MosqueRecord"("mosqueId","actorId",kind,data) VALUES(m,ua,'jamaah','{"name":"Fixture","phone":"PRIVATE_PHONE"}');
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ q:=public.mp_report_workspace(m);IF q->'records'->0->'data'->>'phone'<>'PRIVATE_PHONE' OR q->>'canWrite'<>'false' THEN RAISE EXCEPTION 'admin_report_failed';END IF;checks:=checks+1;
+ denied:=false;BEGIN PERFORM public.mp_report_workspace(other);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'cross_tenant_allowed';END IF;checks:=checks+1;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',b,'role','authenticated')::text,true);
+ denied:=false;BEGIN PERFORM public.mp_report_workspace(m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'reader_export_allowed';END IF;checks:=checks+1;
+ INSERT INTO public."MosqueAdditionalAdmin"("mosqueId","userId") VALUES(m,ub);q:=public.mp_report_workspace(m);checks:=checks+1;
+ DELETE FROM public."MosqueAdditionalAdmin" WHERE "mosqueId"=m AND "userId"=ub;
+ denied:=false;BEGIN PERFORM public.mp_report_workspace(m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'revoked_admin_export_allowed';END IF;checks:=checks+1;
+ PERFORM set_config('request.jwt.claims','{}',true);
+ denied:=false;BEGIN PERFORM public.mp_report_workspace(m);EXCEPTION WHEN insufficient_privilege THEN denied:=true;END;IF NOT denied THEN RAISE EXCEPTION 'anonymous_export_allowed';END IF;checks:=checks+1;
+ IF has_function_privilege('anon','public.mp_report_workspace(uuid)','EXECUTE') OR NOT has_function_privilege('authenticated','public.mp_report_workspace(uuid)','EXECUTE') THEN RAISE EXCEPTION 'unsafe_grants';END IF;checks:=checks+1;
+ q:=public.mp_public_workspace(m);IF q::text LIKE '%PRIVATE_PHONE%' THEN RAISE EXCEPTION 'public_data_leak';END IF;checks:=checks+1;
+ INSERT INTO report_test_results VALUES(jsonb_build_object('result','PASS','checks',checks));
+END $$;
+SELECT * FROM report_test_results;
+ROLLBACK;
