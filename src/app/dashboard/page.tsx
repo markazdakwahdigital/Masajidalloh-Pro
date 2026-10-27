@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import {redirect} from 'next/navigation';
+import {readTenantDraft} from '@/lib/server/tenant-draft';
 import {requireCurrentActor} from '@/lib/server/current-actor';
 import {dataRpc} from '@/lib/server/data-api';
 import {logout} from '@/app/login/actions';
@@ -6,6 +8,7 @@ export const dynamic='force-dynamic';
 export default async function Dashboard({searchParams}:{searchParams:Promise<{welcome?:string;password?:string}>}){
  const {welcome,password}=await searchParams;
  const actor=await requireCurrentActor();
+ if(welcome==='verified'&&await readTenantDraft())redirect('/daftar-masjid');
  const canApply=await dataRpc<boolean>('mp_can_apply');
  const home=await dataRpc<{mosques:Array<{id:string;name:string;plan:string;admin:boolean}>;applications:Array<{id:string;name:string;plan:string;status:string}>}>('mp_home');
  return <main className="tenant-landing"><header className="tenant-header"><strong>MASAJIDALLOH PRO</strong><nav>{canApply&&<Link href="/daftar-masjid">Daftarkan Masjid</Link>}{actor.operator&&<Link href="/platform">Manajemen Tenant</Link>}<form action={logout}><button type="submit">Keluar</button></form></nav></header><section className="tenant-hero"><h1>Masjid Anda</h1>{password==='updated'&&<p role="status">Kata sandi aplikasi berhasil diperbarui.</p>}{welcome==='verified'&&<p role="status">Pendaftaran akun berhasil. Email Anda sudah terverifikasi.</p>}<p>Selamat datang, {actor.name}. Pilih Masjid sesuai keanggotaan Anda.</p></section><section className="tenant-register-card">
